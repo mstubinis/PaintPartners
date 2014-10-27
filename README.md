@@ -1,4 +1,4 @@
-PaintPartners
+Paint Partners
 =============
 
 A collaborative drawing board using pygame that can be configured to be a teaching utility by limiting who can draw. This will be compatible with Windows and Linux based systems, including the Raspberry Pi.
