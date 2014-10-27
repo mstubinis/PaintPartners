@@ -2,24 +2,6 @@ import pygame,os,sys
 from pygame.locals import *
 pygame.init()
 
-def parse_message(message,typeMessage=""):
-    messageList = []
-    count = 0
-    part = ''
-    for char in message:
-        if count != 0:
-            if count > len(typeMessage)-1:
-                if char == "_" or char == "|":
-                    messageList.append(part)
-                    part = ''
-                else:
-                    part += char
-                    if count == len(message) - 1:
-                        messageList.append(part)
-                        part = ''
-        count += 1
-    return messageList
-
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     try:
