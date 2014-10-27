@@ -1,7 +1,6 @@
 import pygame,resourceManager,Paint
 from pygame.locals import *
 
-
 class WindowRectangle(pygame.sprite.Sprite):
     def __init__(self,programSize,pos,w=200,h=600,borderColor=(0,0,0),fillColor=(240,240,240)):
         pygame.sprite.Sprite.__init__(self)
@@ -24,28 +23,6 @@ class WindowRectangle(pygame.sprite.Sprite):
         pygame.draw.rect(screen,self.color_border,self.rect_border)
         pygame.draw.rect(screen,self.color_fill,self.rect)
 
-class WindowChat(WindowRectangle):
-    def __init__(self,programSize,pos,WINDOWCLIENTS,WINDOWPAINT,h=600,borderColor=(0,0,0),fillColor=(240,240,240)):
-        w = programSize[0] - WINDOWCLIENTS.width - WINDOWPAINT.width - (10 * 2)
-        WindowRectangle.__init__(self,programSize,pos,w,h,borderColor,fillColor)
-        self.WINDOWCLIENTS_WIDTH = WINDOWCLIENTS.width
-        self.WINDOWPAINT_WIDTH = WINDOWPAINT.width
-    def resize(self,size,resize=True):
-        if not resize:
-            return
-        self.width = size[0] - self.WINDOWCLIENTS_WIDTH - self.WINDOWPAINT_WIDTH - (10 * 2)
-        self.height = size[1] - 50
-        self.rect_border = pygame.Rect(0,0,self.width,self.height)
-        self.rect_border.topleft = (self.WINDOWPAINT_WIDTH + 10,self.pos[1]-1)
-        
-        self.rect = pygame.Rect(0,0,self.width-2,self.height-2)
-        self.rect.topleft = (self.WINDOWPAINT_WIDTH + 10 + 1,self.pos[1])
-        
-    def update(self,events,mousePos):
-        WindowRectangle.update(self,events,mousePos)
-    def draw(self,screen):
-        WindowRectangle.draw(self,screen)
-
 class WindowPaint(WindowRectangle):
     def __init__(self,programSize,pos,w=100,h=600,borderColor=(0,0,0),fillColor=(240,240,240)):
         WindowRectangle.__init__(self,programSize,pos,w,h,borderColor,fillColor)
@@ -55,7 +32,6 @@ class WindowPaint(WindowRectangle):
         self.currentColor = Paint.ColorIcon(programSize,(270,210-35),35,35,(0,0,0),(255,255,255),True)
         self.image = Paint.PaintImage((10,250),300,300)
         self.wheel = Paint.ColorWheel((10,10),200)
-
 
         brush1 = Paint.PaintBrush((285,10+(10)),10)
         brush2 = Paint.PaintBrush((285,10+(20*1.5)),20)
@@ -104,21 +80,3 @@ class WindowPaint(WindowRectangle):
 
         self.image.draw(screen)
         self.wheel.draw(screen)
-        
-class WindowClients(WindowRectangle):
-    def __init__(self,programSize,pos,w=100,h=600,borderColor=(0,0,0),fillColor=(240,240,240)):
-        WindowRectangle.__init__(self,programSize,pos,w,h,borderColor,fillColor)
-    def resize(self,size,resize=True):
-        if not resize:
-            return
-        self.height = size[1] - 50
-        self.rect_border = pygame.Rect(0,0,self.width,self.height)
-        self.rect_border.topleft = (size[0] - self.width+1,self.pos[1]-1)
-        
-        self.rect = pygame.Rect(0,0,self.width-2,self.height-2)
-        self.rect.topleft = (size[0]+1 - self.width+1,self.pos[1])
-        
-    def update(self,events,mousePos):
-        WindowRectangle.update(self,events,mousePos)
-    def draw(self,screen):
-        WindowRectangle.draw(self,screen)
