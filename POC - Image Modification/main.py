@@ -28,7 +28,6 @@ class Program(object):
 
         for event in listOfEvents:
             if event.type == pygame.QUIT:
-                self.client.disconnect_from_server()
                 pygame.quit()
                 sys.exit(1)
             elif event.type == VIDEORESIZE:

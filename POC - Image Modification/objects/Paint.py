@@ -15,22 +15,17 @@ class ColorWheel(object):
 
         self.pixels = pygame.PixelArray(self.image)
 
-        radius = r/2
-        
         for x in range(r):
             for y in range(r):
-                side1 = (x - radius)
-                side2 = (y - radius)
-
+                side1 = (x - (r/2))
+                side2 = (y - (r/2))
                 side3 = math.sqrt((side1**2) + (side2**2))
-
                 hue = (math.atan2(side2,side1)+3.14159)/(3.14159*2)
-                if side3 <= radius:
-                    rgb = colorsys.hsv_to_rgb(hue,(side3/radius),1)
+                if side3 <= (r/2):
+                    rgb = colorsys.hsv_to_rgb(hue,(side3/(r/2)),1)
                     self.pixels[x,y] = (rgb[0]*255,rgb[1]*255,rgb[2]*255)
                 
         self.image = self.pixels.make_surface()
-        del self.pixels
 
     def is_click(self,events):
         for event in events:
@@ -45,18 +40,14 @@ class ColorWheel(object):
     
     def update(self,events,mousePos,currentColor):
         if self.is_mouse_over(mousePos) == True:
-            for x in range(self.radius):
-                for y in range(self.radius):
-                    if self.is_click(events) == True:
-                        try:
-                            self.pixels = pygame.PixelArray(self.image)
-                            xPos = mousePos[0] - self.pos[0]
-                            yPos = mousePos[1] - self.pos[1]
-                            currentColor.color_fill = self.image.unmap_rgb(self.pixels[xPos,yPos])
-                            del self.pixels
-                        except:
-                            pass
-                        return
+            if self.is_click(events) == True:
+                try:
+                    xPos = mousePos[0] - self.pos[0]
+                    yPos = mousePos[1] - self.pos[1]
+                    currentColor.color_fill = self.image.unmap_rgb(self.pixels[xPos,yPos])
+                except:
+                    pass
+                return
                         
     def draw(self,screen):
         pygame.draw.rect(screen,(0,0,0),self.image_rect_border)
