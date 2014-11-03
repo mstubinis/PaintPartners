@@ -16,7 +16,6 @@ class ClientThreadSend(Thread):
     def add(self,data):
         self.q.put(data)
     def stop(self):
-        self.conn.shutdown(socket.SHUT_RDWR)
         self.conn.close()
         self.running = False
     def run(self):
