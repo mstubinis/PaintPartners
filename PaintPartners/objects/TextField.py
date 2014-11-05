@@ -36,6 +36,15 @@ class TextField(pygame.sprite.Sprite):
             return False
         return True
 
+    def set_message(self,message):
+        self.message = message
+        if self.password == False:
+            self.text = self.font.render(self.message, 1,self.text_color)
+        else:
+            message = ""
+            for i in self.message:
+                message += "*"
+            self.text = self.font.render(message, 1,self.text_color)
     def update_message(self,message):
         if ord(message) != 8 and ord(message) != 13:#not backspace key or enter key
             if len(self.message) < self.maxChars:

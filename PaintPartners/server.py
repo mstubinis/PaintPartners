@@ -253,7 +253,7 @@ class Server():
             else:
                 pass
         
-    def main(self):  
+    def main(self):
         while True:
             self.program.main()
             

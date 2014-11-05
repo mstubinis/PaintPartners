@@ -37,7 +37,7 @@ class Program(object):
         self.screen.fill(self.color)
 
         if self.state == "STATE_MAIN":
-            self.image.update(events,mousePos,self.window_paint.currentColor,self.window_paint.currentBrush)
+            self.image.update(events,mousePos,self.window_paint.currentColor,self.client,self.window_paint.currentBrush)
             self.window_paint.update(events,mousePos)
             self.window_clients.update(events,mousePos)
         elif self.state == "STATE_PROMPT":
@@ -46,6 +46,8 @@ class Program(object):
                 result = self.client.connect_to_server(self.window_prompt.username_field.message,
                                                        self.window_prompt.server_field.message,
                                                        self.window_prompt.server_pass_field.message)
+                self.window_prompt.write_cfg()
+                
                 if result == True:
                     pass
                 else:
