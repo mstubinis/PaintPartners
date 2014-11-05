@@ -141,9 +141,12 @@ class InputThread(Thread):
             userinput = raw_input()
             if userinput == "print_clients":
                 self.server.print_clients()
-            if "kick" in userinput:
-                name = userinput[5:]
-                self.server.reply_to_client_username("_KICK_",name)
+            elif userinput[:4] == "kick":
+                self.server.reply_to_client_username("_KICK_",userinput[5:])
+            elif userinput[:4] == "lock":
+                self.server.reply_to_client_username("_LOCK_",userinput[5:])
+            elif userinput[:6] == "unlock":
+                self.server.reply_to_client_username("_UNLOCK_",userinput[7:])
 
 class Server():
     def __init__(self):

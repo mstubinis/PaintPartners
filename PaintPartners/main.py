@@ -36,8 +36,11 @@ class Program(object):
         
         self.screen.fill(self.color)
 
-        if self.state == "STATE_MAIN":
-            self.image.update(events,mousePos,self.window_paint.currentColor,self.client,self.window_paint.currentBrush)
+        if "STATE_MAIN" in self.state:
+            if self.state == "STATE_MAIN_NOEDIT":
+                self.image.update(events,mousePos,self.window_paint.currentColor,self.client,False,self.window_paint.currentBrush)
+            else:
+                self.image.update(events,mousePos,self.window_paint.currentColor,self.client,True,self.window_paint.currentBrush)
             self.window_paint.update(events,mousePos)
             self.window_clients.update(events,mousePos)
         elif self.state == "STATE_PROMPT":
@@ -47,12 +50,6 @@ class Program(object):
                                                        self.window_prompt.server_field.message,
                                                        self.window_prompt.server_pass_field.message)
                 self.window_prompt.write_cfg()
-                
-                if result == True:
-                    pass
-                else:
-                    pass
-
         for event in events:
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -71,7 +68,7 @@ class Program(object):
         self.image.resize(self.size,(self.window_paint.pos[0] + self.window_paint.width + 4,self.window_paint.pos[1]))
         
     def draw(self):
-        if self.state == "STATE_MAIN":
+        if "STATE_MAIN" in self.state:
             self.image.draw(self.screen)
             self.window_paint.draw(self.screen)
             self.window_clients.draw(self.screen,self.font)

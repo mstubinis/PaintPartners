@@ -47,6 +47,10 @@ class ClientThreadRecieve(Thread):
                         self.client.approve_connection()
                     elif "_KICK_" in data:
                         self.client.disconnect_from_server()
+                    elif "_LOCK_" in data:
+                        self.client.program.state = "STATE_MAIN_NOEDIT"
+                    elif "_UNLOCK_" in data:
+                        self.client.program.state = "STATE_MAIN"
 
                 
             except socket.error as msg:

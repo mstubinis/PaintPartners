@@ -165,7 +165,9 @@ class PaintImage(object):
             return False
         return True
         
-    def update(self,events,mousePos,currentColor,client,currentBrush=None):
+    def update(self,events,mousePos,currentColor,client,canEdit=True,currentBrush=None):
+        if not canEdit:
+            return
         x = mousePos[0] - self.pos[0]
         y = mousePos[1] - self.pos[1]
         if self.is_mouse_over(mousePos):
