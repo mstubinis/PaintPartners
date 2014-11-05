@@ -141,6 +141,9 @@ class InputThread(Thread):
             userinput = raw_input()
             if userinput == "print_clients":
                 self.server.print_clients()
+            if "kick" in userinput:
+                name = userinput[5:]
+                self.server.reply_to_client_username("_KICK_",name)
 
 class Server():
     def __init__(self):
@@ -206,8 +209,15 @@ class Server():
         for key,value in self.clients.iteritems():
             if value.conn is not source_socket:
                 value.conn.send(message)
+                
     def reply_to_client(self,message,source_socket):
         source_socket.send(message)
+        
+    def reply_to_client_username(self,message,username):
+        for key,value in self.clients.iteritems():
+            if key == username:
+                value.conn.send(message)
+                break
 
     def process_init(self,data,client_thread):
         if data:

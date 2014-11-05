@@ -45,6 +45,8 @@ class ClientThreadRecieve(Thread):
                     print(data)
                     if "_CONNECTVALID_" in data:
                         self.client.approve_connection()
+                    elif "_KICK_" in data:
+                        self.client.disconnect_from_server()
 
                 
             except socket.error as msg:
@@ -104,10 +106,14 @@ class Client(object):
             print("Error: " + str(e))
             return False
 
-    def disconnect_from_server(self):
+    def disconnect_from_server(self,message=""):
         self.client_send.stop()
         self.client_recv.stop()
         self.connected = False
+        self.program.state = "STATE_PROMPT"
+
+        if message != "":
+            pass
 
     def send_message(self,message):
         if self.client_send != None:       
