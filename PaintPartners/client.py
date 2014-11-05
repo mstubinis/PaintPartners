@@ -44,7 +44,10 @@ class ClientThreadRecieve(Thread):
                 if data:
                     print(data)
                     if "_CONNECTVALID_" in data:
-                        self.client.approve_connection()
+                        if data == "_CONNECTVALIDNOEDIT_":
+                            self.client.approve_connection(False)
+                        else:
+                            self.client.approve_connection()
                     elif "_KICK_" in data:
                         self.client.disconnect_from_server()
                     elif "_LOCK_" in data:
@@ -69,9 +72,12 @@ class Client(object):
         self.server_pass = ""
         self.program = program
 
-    def approve_connection(self):
+    def approve_connection(self,canEdit=True):
         self.connected = True
-        self.program.state = "STATE_MAIN"
+        if canEdit:
+            self.program.state = "STATE_MAIN"
+        else:
+            self.program.state = "STATE_MAIN_NOEDIT"
         
     def connect_to_server(self,username,server,server_pass,admin=False):
         if username == "":

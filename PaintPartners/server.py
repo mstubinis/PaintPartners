@@ -248,7 +248,11 @@ class Server():
                 self.clients = removekey(self.clients,address_copy)
                 self.print_clients()
 
-                self.reply_thread.add(ReplyMessage("_CONNECTVALID_",client_thread.conn,False))
+                canEdit = config.get('ServerInfo', 'allowedits')
+                if canEdit == 1:
+                    self.reply_thread.add(ReplyMessage("_CONNECTVALID_",client_thread.conn,False))
+                else:
+                    self.reply_thread.add(ReplyMessage("_CONNECTVALIDNOEDIT_",client_thread.conn,False))
                 
     def process(self,data,username):
         if data:
