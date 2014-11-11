@@ -57,8 +57,10 @@ class ClientThreadRecieve(Thread):
                         self.client.program.state = "STATE_MAIN_NOEDIT"
                     elif "_UNLOCK_" in data:
                         self.client.program.state = "STATE_MAIN"
-
-                
+                    elif "_CHATMESSAGE" in data:
+                        #do whatever
+                        #self.client.program.window_chat.whatever
+                        pass
             except socket.error as msg:
                 print("Socket error!: " + str(msg))
                 self.client.disconnect_from_server()

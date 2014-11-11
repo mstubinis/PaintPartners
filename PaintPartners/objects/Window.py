@@ -170,6 +170,14 @@ class WindowRectangle(pygame.sprite.Sprite):
 class WindowTextlist(WindowRectangle):
     def __init__(self,programSize,pos,w=200,h=600,borderColor=(0,0,0),fillColor=(240,240,240)):
         WindowRectangle.__init__(self,programSize,pos,w,h,borderColor,fillColor)
+
+
+        #
+        #  1 list that contains all the data related to some sort of functionality
+        #
+        #  1 list that contains what is displayed onto the screen
+        #
+
     
     def update(self,events,mousePos):
         WindowRectangle.update(self,events,mousePos)
@@ -241,7 +249,7 @@ class WindowChat(WindowTextlist):
                                                int(w/font.size("X")[0]) - (len(client.username)*2) - 2, #max chars
                                                client.username, #username
                                                font)#font
-                                      
+
     def resize(self,size,resize=True):
         if not resize:
             return
@@ -270,6 +278,9 @@ class WindowChat(WindowTextlist):
         self.chat_field.update(events,mousePos)
 
         #if enter key is pressed, send chat field message to server and then set the chat field message blank
+        #if enterkeyispressed:
+            #this is just an example
+            #self.client.send_message("_CHATMESSAGEmtubinis_" + self.chat_field.message)
 
     def draw(self,screen,font):
         #draw base class

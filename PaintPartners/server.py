@@ -263,7 +263,8 @@ class Server():
                     self.reply_thread.add(ReplyMessage("_CONNECTVALID_",client_thread.conn,False))
                 else:
                     self.reply_thread.add(ReplyMessage("_CONNECTVALIDNOEDIT_",client_thread.conn,False))
-                
+
+    #This method prcesses string data          
     def process(self,data,username):
         if data:
             print(data)
@@ -275,10 +276,12 @@ class Server():
                     break
   
             if data[0] == "_":
-                pass
-                        
-            else:
-                pass
+                if "_CHATMESSAGE" in data:
+                    #data[14:]
+
+                    self.reply_thread.add(ReplyMessage(data,None,True))
+                    
+                    pass
         
     def main(self):
         while True:
