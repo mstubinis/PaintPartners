@@ -2,7 +2,7 @@ import pygame
 from pygame.locals import *
 
 class TextField(pygame.sprite.Sprite):
-    def __init__(self,pos,maxChars,fontSize,buttonName,font,password=False):
+    def __init__(self,pos,maxChars,buttonName,font,password=False):
         pygame.sprite.Sprite.__init__(self)
         self.pos = pos
         self.selected = False
@@ -18,24 +18,58 @@ class TextField(pygame.sprite.Sprite):
         temp_message = ""
         for i in range(maxChars):
             temp_message += "X"
+
         
         self.font = font
         self.text = self.font.render(self.message, 1,self.text_color)
-        self.rect = pygame.Rect(0,0,self.font.size(temp_message)[0]+6,self.font.size(temp_message)[1]+8)
-        self.rect_border = pygame.Rect(0,0,self.font.size(temp_message)[0]+8,self.font.size(temp_message)[1]+10)
+
+        self.w = self.font.size(temp_message)[0] + 8
+        self.h = self.font.size(temp_message)[1] + 10
+        
+        self.rect = pygame.Rect(0,0,self.w-2,self.h-2)
+        self.rect_border = pygame.Rect(0,0,self.w,self.h)
 
         self.nametext = self.font.render(self.name, 1,self.text_color)
         self.rect_name = pygame.Rect(0,0,self.font.size(self.name)[0],self.font.size(self.name)[1])
         
         self.rect.center = (pos[0]+ self.font.size(self.name)[0]/2,pos[1])
         self.rect_border.center = (pos[0] + self.font.size(self.name)[0]/2,pos[1])
-        self.rect_name.center = (pos[0] - self.font.size(temp_message)[0]/2 - 6,pos[1])
+        self.rect_name.center = (pos[0] - self.w/2 - 6,pos[1])
     
     def is_mouse_over(self,mousePos):
         if mousePos[0] < self.rect.x or mousePos[0] > self.rect.x + self.rect.w or mousePos[1] < self.rect.y or mousePos[1] > self.rect.y + self.rect.h:
             return False
         return True
 
+    def set_pos(self,pos):
+        self.rect.center = (pos[0]+ self.font.size(self.name)[0]/2,pos[1])
+        self.rect_border.center = (pos[0] + self.font.size(self.name)[0]/2,pos[1])
+        self.rect_name.center = (pos[0] - self.w/2 - 6,pos[1])
+
+    def set_name(self,name):
+        self.name = name
+        self.nametext = self.font.render(self.name, 1,self.text_color)
+
+        self.rect = pygame.Rect(0,0,self.w-2,self.h-2)
+        self.rect_border = pygame.Rect(0,0,self.w,self.h)
+        self.rect_name = pygame.Rect(0,0,self.font.size(self.name)[0],self.font.size(self.name)[1])
+        
+        self.rect.center = (self.pos[0]+ self.font.size(self.name)[0]/2,self.pos[1])
+        self.rect_border.center = (self.pos[0] + self.font.size(self.name)[0]/2,self.pos[1])
+        self.rect_name.center = (self.pos[0] - self.w/2 - 6,self.pos[1])
+
+    def set_maxchars(self,maxChars):
+        self.maxChars = maxChars
+        temp_message = ""
+        for i in range(maxChars):
+            temp_message += "X"
+
+        self.w = self.font.size(temp_message)[0] + 8
+        self.h = self.font.size(temp_message)[1] + 10
+        
+        self.rect = pygame.Rect(0,0,self.w-2,self.h-2)
+        self.rect_border = pygame.Rect(0,0,self.w,self.h)
+     
     def set_message(self,message):
         self.message = message
         if self.password == False:

@@ -74,7 +74,7 @@ class Client(object):
 
     def approve_connection(self,canEdit=True):
         self.connected = True
-        if canEdit:
+        if canEdit == True:
             self.program.state = "STATE_MAIN"
         else:
             self.program.state = "STATE_MAIN_NOEDIT"
@@ -107,6 +107,13 @@ class Client(object):
                 self.client_recv.start()
                 
                 self.send_message("_CONNECT_|" + self.username + "|" + self.server_pass)
+
+
+                self.program.window_clients.add_client(username)
+                self.program.window_chat.chat_field.set_name(username)
+                self.program.window_chat.chat_field.set_maxchars(int(self.program.window_chat.width/self.program.font.size("X")[0]) - len(username)-2)
+
+                
                 sleep(0.5)
 
                 return True

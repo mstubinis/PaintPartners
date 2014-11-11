@@ -249,7 +249,7 @@ class Server():
                 self.print_clients()
 
                 canEdit = config.get('ServerInfo', 'allowedits')
-                if canEdit == 1:
+                if canEdit == "1":
                     self.reply_thread.add(ReplyMessage("_CONNECTVALID_",client_thread.conn,False))
                 else:
                     self.reply_thread.add(ReplyMessage("_CONNECTVALIDNOEDIT_",client_thread.conn,False))

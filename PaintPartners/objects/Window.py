@@ -136,7 +136,8 @@ class Button(pygame.sprite.Sprite):
         else:
             pygame.draw.rect(screen,self.color_fill,self.rect)
         screen.blit(self.text, self.rect)
-        
+
+ 
 class WindowRectangle(pygame.sprite.Sprite):
     def __init__(self,programSize,pos,w=200,h=600,borderColor=(0,0,0),fillColor=(240,240,240)):
         pygame.sprite.Sprite.__init__(self)
@@ -159,14 +160,41 @@ class WindowRectangle(pygame.sprite.Sprite):
         pygame.draw.rect(screen,self.color_border,self.rect_border)
         pygame.draw.rect(screen,self.color_fill,self.rect)
 
-class WindowClients(WindowRectangle):
-    def __init__(self,programSize,pos,w=100,h=600,borderColor=(0,0,0),fillColor=(255,255,255)):
+#This window's functionality assigned to Pharas
+#
+# This window is simply a child of WindowRectangle, that should contain functionality
+# As to how text should be listed. Ideally methods and variables used within this class
+# should be used to contain a list of all text, a list of all DISPLAYABLE text (think overflow),
+# and functionality on handeling text overflow, like adding a scrolling bar on the side of the window.
+#
+class WindowTextlist(WindowRectangle):
+    def __init__(self,programSize,pos,w=200,h=600,borderColor=(0,0,0),fillColor=(240,240,240)):
         WindowRectangle.__init__(self,programSize,pos,w,h,borderColor,fillColor)
+    
+    def update(self,events,mousePos):
+        WindowRectangle.update(self,events,mousePos)
+
+    def draw(self,screen,font):
+        WindowRectangle.draw(self,screen)
+
+#This window's functionality assigned to Pharas
+#
+# When a client connects or disconnects, update the list of clients. 
+# Prefered way of doing it is to send a message from the server with the specific client
+# that connected/disconnected and then add or remove said client from the list of clients.
+# However, I guess one can 'cheat' and just have the server send a list of all the connected
+# clients to each client and just assign the client list to that, but that might be a little
+# slower than the previous method.
+#
+
+class WindowClients(WindowTextlist):
+    def __init__(self,programSize,pos,w=100,h=600,borderColor=(0,0,0),fillColor=(255,255,255)):
+        WindowTextlist.__init__(self,programSize,pos,w,h,borderColor,fillColor)
         self.clients = []
     def resize(self,size,resize=True):
         if not resize:
             return
-        self.height = size[1]/2 - 8 + 1
+        self.height = size[1] - self.pos[1] - 4
         self.rect_border = pygame.Rect(0,0,self.width,self.height+1)
         self.rect_border.topleft = (self.pos[0],self.pos[1]-1)
         
@@ -181,16 +209,82 @@ class WindowClients(WindowRectangle):
         self.clients.remove(client)
             
     def update(self,events,mousePos):
-        WindowRectangle.update(self,events,mousePos)
+        WindowTextlist.update(self,events,mousePos)
 
     def draw(self,screen,font):
-        WindowRectangle.draw(self,screen)
+        WindowTextlist.draw(self,screen,font)
+
+        #loop through each of the client's names and render them to the screen as text
         count = 0
         for i in self.clients:
             label = font.render(i, 1, (0,0,0))
-            screen.blit(label, (self.pos[0] + 8, self.pos[1] + 8 + (count * 15)))
+            screen.blit(label, (self.pos[0] + 8, self.pos[1] + 8 + (count * (font.size("X")[1]+4))))
             count += 1
+            
+#This window's functionality assigned to Pharas
+#
+# Have all the messages sent as chat displayed on the larger window. Have the text field below (self.chat_field) be used
+# to send your messages to other clients.
+#
+#
+class WindowChat(WindowTextlist):
+    def __init__(self,programSize,pos,font,client,w=600,h=300,borderColor=(0,0,0),fillColor=(240,240,240)):
+        WindowTextlist.__init__(self,programSize,pos,w,h,borderColor,fillColor)
 
+        self.chat_rect_border = pygame.Rect(0,0,self.width-8,self.height - font.size("X")[1]-26)
+        self.chat_rect_border.topleft = (self.pos[0]+4,self.pos[1]+3)
+        
+        self.chat_rect = pygame.Rect(0,0,self.width-10,self.height - font.size("X")[1]-28)
+        self.chat_rect.topleft = (self.pos[0]+5,self.pos[1]+4)
+        print(len(client.username))
+
+        self.chat_field = TextField.TextField((pos[0] + w/2,pos[1]+h-font.size("X")[1]-4),
+                                               int(w/font.size("X")[0]) - (len(client.username)*2) - 2, #max chars
+                                               client.username, #username
+                                               font)#font
+                                      
+    def resize(self,size,resize=True):
+        if not resize:
+            return
+        self.height = size[1] - self.pos[1] - 4
+        if self.height > 80:
+            #resize base window
+            self.rect_border = pygame.Rect(0,0,self.width,self.height+1)
+            self.rect_border.topleft = (self.pos[0],self.pos[1]-1)
+            self.rect = pygame.Rect(0,0,self.width-2,self.height-1)
+            self.rect.topleft = (self.pos[0]+1,self.pos[1])       
+
+            #resize text field
+            self.chat_field.set_pos((self.pos[0] + self.width/2,self.pos[1]+self.height-self.chat_field.font.size("X")[1]-4))
+
+            #resize chat window
+            self.chat_rect_border = pygame.Rect(0,0,self.width-8,self.height - self.chat_field.h*1.5)
+            self.chat_rect_border.topleft = (self.pos[0]+4,self.pos[1]+3)
+            self.chat_rect = pygame.Rect(0,0,self.width-10,self.height - self.chat_field.h*1.5-2)
+            self.chat_rect.topleft = (self.pos[0]+5,self.pos[1]+4) 
+        
+    def update(self,events,mousePos):
+        #update base class
+        WindowTextlist.update(self,events,mousePos)
+
+        #update text field
+        self.chat_field.update(events,mousePos)
+
+        #if enter key is pressed, send chat field message to server and then set the chat field message blank
+
+    def draw(self,screen,font):
+        #draw base class
+        WindowTextlist.draw(self,screen,font)
+
+        #draw the larger window containing the chat messages
+        pygame.draw.rect(screen,(0,0,0),self.chat_rect_border)
+        pygame.draw.rect(screen,(255,255,255),self.chat_rect)
+
+        #put drawing code here for rendering client chat messages
+
+        #draw text field
+        self.chat_field.draw(screen)
+            
 class WindowPrompt(WindowRectangle):
     def __init__(self,programSize,pos,font,w=100,h=600,borderColor=(0,0,0),fillColor=(240,240,240)):
         WindowRectangle.__init__(self,programSize,pos,w,h,borderColor,fillColor)
@@ -198,9 +292,9 @@ class WindowPrompt(WindowRectangle):
         self.rect_border.center = (self.pos[0],self.pos[1])
         self.rect.center = (self.pos[0],self.pos[1])
 
-        self.username_field = TextField.TextField((self.pos[0],self.pos[1] - self.height/2 + 50),20,14,"Username: ",font)
-        self.server_field = TextField.TextField((self.pos[0],self.username_field.pos[1]+50),20,14,"Server IP: ",font)
-        self.server_pass_field = TextField.TextField((self.pos[0],self.server_field.pos[1]+50),20,14,"Server Password: ",font,True)
+        self.username_field = TextField.TextField((self.pos[0],self.pos[1] - self.height/2 + 50),20,"Username: ",font)
+        self.server_field = TextField.TextField((self.pos[0],self.username_field.pos[1]+50),20,"Server IP: ",font)
+        self.server_pass_field = TextField.TextField((self.pos[0],self.server_field.pos[1]+50),20,"Server Password: ",font,True)
         self.connect_button = Button((self.pos[0],self.pos[1] + h/2 - 25),"Connect",font)
 
         self.load_cfg()
@@ -277,7 +371,6 @@ class WindowPaint(WindowRectangle):
     def resize(self,size,resize=True):
         if not resize:
             return
-        self.height = size[1]/2 - 8 + 1
         self.rect_border = pygame.Rect(0,0,self.width,self.height+1)
         self.rect_border.topleft = (self.pos[0],self.pos[1]-1)
         
