@@ -236,7 +236,6 @@ class WindowChat(WindowTextlist):
         
         self.chat_rect = pygame.Rect(0,0,self.width-10,self.height - font.size("X")[1]-28)
         self.chat_rect.topleft = (self.pos[0]+5,self.pos[1]+4)
-        print(len(client.username))
 
         self.chat_field = TextField.TextField((pos[0] + w/2,pos[1]+h-font.size("X")[1]-4),
                                                int(w/font.size("X")[0]) - (len(client.username)*2) - 2, #max chars
