@@ -4,7 +4,10 @@ from time import sleep
 from threading import Thread
 
 def GetIp():
-    return json.load(urlopen('http://httpbin.org/ip'))['origin']
+    try:
+        return json.load(urlopen('http://httpbin.org/ip'))['origin']
+    except:
+        print("Could not obtain IP Address")
 
 class ClientThreadSend(Thread):
     def __init__(self,client,socket):

@@ -22,7 +22,10 @@ def parse_message(message,typeMessage=""):
     return messageList
 
 def GetIp():
-    return json.load(urlopen('http://httpbin.org/ip'))['origin']
+    try:
+        return json.load(urlopen('http://httpbin.org/ip'))['origin']
+    except:
+        print("Could not obtain IP Address")
 
 def removekey(dictionary, key):
     r = dict(dictionary)
@@ -139,8 +142,10 @@ class InputThread(Thread):
     def run(self):
         while self.running:
             userinput = raw_input()
-            if userinput == "print_clients":
+            if userinput == "print clients":
                 self.server.print_clients()
+            elif userinput == "print clients detail":
+                self.server.print_clients_detail()
             elif userinput[:4] == "kick":
                 self.server.reply_to_client_username("_KICK_",userinput[5:])
             elif userinput[:4] == "lock":
@@ -167,6 +172,14 @@ class Server():
         self.program = m.Program(True)
         
     def print_clients(self):
+        message = "\nConnected Clients: ["
+        for key,value in self.clients.iteritems():
+            message += str(key)+","
+        message = message[:-1]
+        message += "]\n"
+        print(message)
+        
+    def print_clients_detail(self):
         message = "\nConnected Clients: ["
         for key,value in self.clients.iteritems():
             message += str(key)+","
@@ -217,10 +230,7 @@ class Server():
         source_socket.send(message)
         
     def reply_to_client_username(self,message,username):
-        for key,value in self.clients.iteritems():
-            if key == username:
-                value.conn.send(message)
-                break
+        self.clients[username].conn.send(message)
 
     def process_init(self,data,client_thread):
         if data:
