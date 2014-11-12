@@ -120,6 +120,9 @@ class Client(object):
                 self.program.window_clients.add_client(username)
                 self.program.window_chat.chat_field.set_name(username)
                 self.program.window_chat.chat_field.set_maxchars(int(self.program.window_chat.width/self.program.font.size("X")[0]) - len(username)-2)
+                self.program.window_chat.chat_field.set_pos((self.program.window_chat.pos[0] + self.program.window_chat.width/2,
+                                                             self.program.window_chat.pos[1]+self.program.window_chat.height-self.program.window_chat.chat_field.font.size("X")[1]-4))
+
 
                 
                 sleep(0.5)

@@ -141,9 +141,13 @@ class Server():
         self.server_listen_thread = ServerListenThread(self)
         self.server_listen_thread.start()
 
-        m = imp.load_source('main', 'main.py')
-        self.program = m.Program(True)
-        
+        try:
+            m = imp.load_source('main', 'main.pyw')
+            self.program = m.Program(True)
+        except:
+            m = imp.load_source('main', 'main.py')
+            self.program = m.Program(True)
+            
     def print_clients(self):
         message = "\nConnected Clients: ["
         for key,value in self.clients.iteritems():

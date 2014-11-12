@@ -25,9 +25,7 @@ class Program(object):
         self.window_clients = Window.WindowClients(self.size,(4,self.window_paint.height+8),300,self.size[1]/2-4)
         self.window_chat = Window.WindowChat(self.size,(self.window_paint.pos[0] + self.window_paint.width + 4,self.image.pos[1] + self.image.height + 6),
                                              self.font,self.client,self.size[0] - self.window_paint.width - 12,self.size[1] - self.image.height - 15)
-        
-
-        
+          
         if connectAsAdmin == True:
             self.state = "STATE_MAIN"
             config = ConfigParser.RawConfigParser()
@@ -58,6 +56,7 @@ class Program(object):
                 self.window_prompt.write_cfg()
         for event in events:
             if event.type == pygame.QUIT:
+                self.client.disconnect_from_server()
                 pygame.quit()
                 sys.exit(1)
             elif event.type == VIDEORESIZE:
