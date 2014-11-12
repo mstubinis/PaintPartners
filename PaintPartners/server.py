@@ -121,7 +121,7 @@ class ClientThread(Thread):
     def run(self):
         while self.running:
             try:
-                data = self.conn.recv(32768)
+                data = self.conn.recv(9999999)
                 if data:
                     if not "_CONNECT_" in data:
                         self.server.process_thread.add(data,self.username)
@@ -282,6 +282,9 @@ class Server():
 
                 elif "_PIXELDATA_" in data:
                     self.broadcast_notsource(data,username)
+                elif "_REQUESTIMAGE_" in data:
+                    imgdata = self.program.image.tostring()
+                    self.reply_to_client_username("_FULLDATA_" + imgdata,username)
         
     def main(self):
         while True:

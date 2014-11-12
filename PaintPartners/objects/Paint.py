@@ -134,7 +134,11 @@ class PaintImage(object):
         self.pixels = pygame.PixelArray(self.image.copy())
 
         self.pixel_buffer = {}
-
+    def tostring(self):
+        imgdata = pygame.image.tostring(self.image,"RGB")
+        return imgdata
+    def fromstring(self,data):
+        self.image = pygame.image.frombuffer(data,(self.width,self.height),"RGB")
     def resize(self,size,location):
         self.pos = location
         self.image_rect.topleft = (self.pos[0]+1,self.pos[1])

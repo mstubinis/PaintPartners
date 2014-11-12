@@ -43,13 +43,15 @@ class ClientThreadRecieve(Thread):
     def run(self):
         while self.running == True:
             try:
-                data = self.conn.recv(32768)
+                data = self.conn.recv(9999999)
                 if data:
                     if "_CONNECTVALID_" in data:
                         if data == "_CONNECTVALIDNOEDIT_":
                             self.client.approve_connection(False)
                         else:
                             self.client.approve_connection()
+                    elif "_FULLDATA_" in data:
+                        self.client.program.image.fromstring(data[10:])
                     elif "_KICK_" in data:
                         self.client.disconnect_from_server()
                     elif "_LOCK_" in data:
@@ -115,13 +117,14 @@ class Client(object):
                 
                 self.send_message("_CONNECT_|" + self.username + "|" + self.server_pass)
 
-
                 self.program.window_clients.add_client(username)
                 self.program.window_chat.chat_field.set_name(username)
                 self.program.window_chat.chat_field.set_maxchars(int(self.program.window_chat.width/self.program.font.size("X")[0]) - len(username)-2)
 
                 
                 sleep(0.5)
+
+                self.send_message("_REQUESTIMAGE_")
 
                 return True
             else:
