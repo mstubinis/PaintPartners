@@ -280,7 +280,7 @@ class WindowChat(WindowTextlist):
         #if enter key is pressed, send chat field message to server and then set the chat field message blank
         #if enterkeyispressed:
             #this is just an example
-            #self.client.send_message("_CHATMESSAGEmtubinis_" + self.chat_field.message)
+            #self.client.send_message("_CHATMESSAGE" + self.client.username + self.chat_field.message)
 
     def draw(self,screen,font):
         #draw base class

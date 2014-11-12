@@ -25,7 +25,7 @@ class ClientThreadSend(Thread):
         while self.running == True:
             try:
                 if not self.q.empty():
-                    message = self.q.get(block=True, timeout=1.0)
+                    message = self.q.get(block=True)
                     self.conn.send(message)
             except socket.error as msg:
                 print("Socket error!: " +  str(msg))
@@ -43,9 +43,8 @@ class ClientThreadRecieve(Thread):
     def run(self):
         while self.running == True:
             try:
-                data = self.conn.recv(16384)
+                data = self.conn.recv(32768)
                 if data:
-                    print(data)
                     if "_CONNECTVALID_" in data:
                         if data == "_CONNECTVALIDNOEDIT_":
                             self.client.approve_connection(False)
@@ -61,6 +60,9 @@ class ClientThreadRecieve(Thread):
                         #do whatever
                         #self.client.program.window_chat.whatever
                         pass
+                    elif "_PIXELDATA_" in data:
+                        self.client.program.image.process_pixels(data)
+                        
             except socket.error as msg:
                 print("Socket error!: " + str(msg))
                 self.client.disconnect_from_server()
@@ -138,5 +140,5 @@ class Client(object):
             pass
 
     def send_message(self,message):
-        if self.client_send != None:       
+        if self.client_send != None:
             self.client_send.add(message)

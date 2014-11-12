@@ -146,6 +146,48 @@ class PaintImage(object):
             return True
         return False
 
+    def process_pixels(self,data):
+        #per pixel format example: x500y1000#ffffff
+        x = ""
+        y = ""
+        hexColor = ""
+        count = 0
+        for i in data:
+            process = False
+            if i == ".":
+                for s in range(4):
+                    try:
+                        if data[count+s].isdigit():
+                            x += data[count+s]
+                    except:
+                        x = ""
+                        break
+            elif i == ",":
+                for t in range(4):
+                    try:
+                        if data[count+t].isdigit():
+                            y += data[count+t]
+                    except:
+                        y = ""
+                        break
+            elif i == "#":
+                for u in range(6):
+                    try:
+                        hexColor += data[count+u+1]
+                    except:
+                        hexColor = ""
+                        break
+                process = True
+            if process == True:
+                if x != "" and y != "" and hexColor != "":
+                    self.pixels[int(x),int(y)] = pygame.Color("#"+hexColor)
+                x = ""
+                y = ""
+                hexColor = ""
+            count += 1
+            
+        self.image = self.pixels.make_surface()
+
     def hex_to_rgb(self,value):
         value = value.lstrip('#')
         lv = len(value)
@@ -157,7 +199,7 @@ class PaintImage(object):
         if len(self.pixel_buffer) == 0:
             return string
         for key,value in self.pixel_buffer.iteritems():
-            string += "x" + str(key[0]) + "y" + str(key[1]) + "#" + value
+            string += "." + str(key[0]) + "," + str(key[1]) + "#" + value
         return string
     
     def is_mouse_over(self,mousePos):
@@ -194,7 +236,7 @@ class PaintImage(object):
         if not self.pixel_buffer:
             return
         string = self.convert_buffer_to_string()
-        client.send_message("_SENDPIXELDATA_" + string)
+        client.send_message("_PIXELDATA_" + string)
         self.pixel_buffer.clear()
     
     def draw(self,screen):

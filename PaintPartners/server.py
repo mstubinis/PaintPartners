@@ -83,9 +83,9 @@ class ReplyThread(Thread):
     def run(self):
         while self.running:
             if not self.q.empty():
-                value = self.q.get(block=True, timeout=0.3)
+                value = self.q.get(block=True)
                 if value.broadcast == True:
-                    self.server.broadcast(value.message,None)
+                    self.server.broadcast(value.message)
                 else:
                     self.server.reply_to_client(value.message,value.source)
                     
@@ -104,7 +104,7 @@ class ProcessThread(Thread):
     def run(self):
         while self.running:
             if not self.q.empty():
-                value = self.q.get(block=True,timeout=0)
+                value = self.q.get(block=True)
                 self.server.process(value,self.username)
                 self.username = ""
 
@@ -121,7 +121,7 @@ class ClientThread(Thread):
     def run(self):
         while self.running:
             try:
-                data = self.conn.recv(16384)
+                data = self.conn.recv(32768)
                 if data:
                     if not "_CONNECT_" in data:
                         self.server.process_thread.add(data,self.username)
@@ -219,11 +219,12 @@ class Server():
             with open('server.cfg', 'w') as configfile:
                 config.write(configfile)
           
-    def broadcast(self,message,source_socket=None,tosender=False):
-        if tosender == True and source_socket != None:
-            source_socket.send(message)
+    def broadcast(self,message):
         for key,value in self.clients.iteritems():
-            if value.conn is not source_socket:
+            value.conn.send(message)
+    def broadcast_notsource(self,message,username):
+        for key,value in self.clients.iteritems():
+            if key != username:
                 value.conn.send(message)
                 
     def reply_to_client(self,message,source_socket):
@@ -267,7 +268,6 @@ class Server():
     #This method prcesses string data          
     def process(self,data,username):
         if data:
-            print(data)
             client_thread = None
             #get client thread to work with
             for key,value in self.clients.iteritems():
@@ -277,11 +277,11 @@ class Server():
   
             if data[0] == "_":
                 if "_CHATMESSAGE" in data:
-                    #data[14:]
+                    #data[14:] - this should be the string data after the _CHATMESSAGE tag
+                    self.broadcast(data[14:])
 
-                    self.reply_thread.add(ReplyMessage(data,None,True))
-                    
-                    pass
+                elif "_PIXELDATA_" in data:
+                    self.broadcast_notsource(data,username)
         
     def main(self):
         while True:
