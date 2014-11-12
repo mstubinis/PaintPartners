@@ -63,31 +63,6 @@ class ServerListenThread(Thread):
                 if value.running == False:
                     print("Removing Client: " + str(key))
                     self.server.clients = removekey(self.server.clients,key)
-
-class ReplyMessage(object):
-    def __init__(self,message,source,broadcast=True):
-        self.message = message
-        self.broadcast = broadcast
-        self.source = source
-
-class ReplyThread(Thread):
-    def __init__(self,server):
-        super(ReplyThread, self).__init__()
-        self.running = True
-        self.q = Queue.Queue()
-        self.server = server
-    def add(self, data):
-        self.q.put(data)
-    def stop(self):
-        self.running = False
-    def run(self):
-        while self.running:
-            if not self.q.empty():
-                value = self.q.get(block=True)
-                if value.broadcast == True:
-                    self.server.broadcast(value.message)
-                else:
-                    self.server.reply_to_client(value.message,value.source)
                     
 class ProcessThread(Thread):
     def __init__(self,server):
@@ -159,10 +134,8 @@ class Server():
         self.load_cfg()
     
         self.process_thread = ProcessThread(self)
-        self.reply_thread = ReplyThread(self)
         self.input_thread = InputThread(self)
         self.process_thread.start()
-        self.reply_thread.start()
         self.input_thread.start()
         
         self.server_listen_thread = ServerListenThread(self)
@@ -180,12 +153,18 @@ class Server():
         print(message)
         
     def print_clients_detail(self):
-        message = "\nConnected Clients: ["
+        print("\r\n----------------------------------")
+        print("----------------------------------")
+        print("Connected Clients")
+        print("----------------------------------")
         for key,value in self.clients.iteritems():
-            message += str(key)+","
-        message = message[:-1]
-        message += "]\n"
-        print(message)
+            print("----------------------------------")
+            print("Username:   " + str(value.username))
+            print("Connected:  " + str(value.running))
+            print("Address:    " + str(value.address))
+            print("----------------------------------")
+        print("----------------------------------\r\n")
+        
         
     def load_cfg_yesorno(self,config,key,printstatement):
         while True:
@@ -241,7 +220,7 @@ class Server():
 
                 for key,value in self.clients.iteritems():
                     if key == messages[1]:
-                        self.reply_thread.add(ReplyMessage("_INVALIDUSERNAME_",client_thread.conn,False))
+                        self.reply_to_client("_INVALIDUSERNAME_",client_thread.conn)
                         #client_thread.stop()
                         return
                 config = ConfigParser.RawConfigParser()
@@ -249,7 +228,7 @@ class Server():
                 serverPass = config.get('ServerInfo', 'serverpass')
 
                 if messages[2] != serverPass:
-                    self.reply_thread.add(ReplyMessage("_INVALIDPASSWORD_",client_thread.conn,False))
+                    self.reply_to_client("_INVALIDPASSWORD_",client_thread.conn)
                     #client_thread.stop()
                     return
 
@@ -261,9 +240,9 @@ class Server():
 
                 canEdit = config.get('ServerInfo', 'allowedits')
                 if canEdit == "1":
-                    self.reply_thread.add(ReplyMessage("_CONNECTVALID_",client_thread.conn,False))
+                    self.reply_to_client("_CONNECTVALID_",client_thread.conn)
                 else:
-                    self.reply_thread.add(ReplyMessage("_CONNECTVALIDNOEDIT_",client_thread.conn,False))
+                    self.reply_to_client("_CONNECTVALIDNOEDIT_",client_thread.conn)
 
     #This method prcesses string data          
     def process(self,data,username):
@@ -292,8 +271,6 @@ class Server():
             
         self.process_thread.stop()
         self.process_thread.join()
-        self.reply_thread.stop()
-        self.reply_thread.join()
         self.input_thread.stop()
         self.input_thread.join()
         self.server_listen_thread.stop()

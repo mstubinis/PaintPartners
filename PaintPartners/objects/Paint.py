@@ -134,11 +134,15 @@ class PaintImage(object):
         self.pixels = pygame.PixelArray(self.image.copy())
 
         self.pixel_buffer = {}
+        
     def tostring(self):
         imgdata = pygame.image.tostring(self.image,"RGB")
         return imgdata
+    
     def fromstring(self,data):
         self.image = pygame.image.frombuffer(data,(self.width,self.height),"RGB")
+        self.pixels = pygame.PixelArray(self.image.copy())
+        
     def resize(self,size,location):
         self.pos = location
         self.image_rect.topleft = (self.pos[0]+1,self.pos[1])
@@ -219,9 +223,7 @@ class PaintImage(object):
         if self.is_mouse_over(mousePos):
             if self.is_click(events):
 
-                if currentBrush == None:
-                    self.pixels[x,y] = currentColor.color_fill
-                else:
+                if currentBrush != None:
                     startX = x - currentBrush.radius
                     startY = y - currentBrush.radius
                     for i in range(currentBrush.radius*2):
