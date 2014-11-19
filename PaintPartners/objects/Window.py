@@ -15,16 +15,23 @@ class Slider(pygame.sprite.Sprite):
         self.box_color_border = boxBorder
         self.highlighted = False
         self.moving = False
+   
+        if horizontal == False:
+            self.width = height
+            self.height = length
+            self.box_width = boxHeight
+            self.box_height = boxLength       
 
         self.rect = pygame.Rect(0,0,self.width,self.height)
-        self.rect.midleft = (self.pos[0],self.pos[1])
+        self.rect.center = (self.pos[0] + self.width/2,self.pos[1])
 
         self.rect_box = pygame.Rect(0,0,self.box_width,self.box_height)
         self.rect_box_border = pygame.Rect(0,0,self.box_width+2,self.box_height+2)
+        
         if horizontal == True:
             self.set_box_pos((self.pos[0] + self.width,self.pos[1]))
         else:
-            self.set_box_pos((self.pos[0],self.pos[1] + self.height))
+            self.set_box_pos((self.pos[0] + self.width/2,self.pos[1] + self.height))
 
 
     def is_mouse_over(self,mousePos):
@@ -43,6 +50,7 @@ class Slider(pygame.sprite.Sprite):
     def set_box_pos(self,pos):
         self.rect_box.center = (pos[0],pos[1])
         self.rect_box_border.center = (pos[0],pos[1])
+        
     def get_box_pos(self):
         return (self.rect_box_border.x,self.rect_box_border.y)
 
@@ -72,7 +80,7 @@ class Slider(pygame.sprite.Sprite):
                 if self.horizontal == True:
                     self.set_box_pos((mousePos[0],self.pos[1]))
                 else:
-                    self.set_box_pos((self.pos[0],mousePos[1]))
+                    self.set_box_pos((self.pos[0] + self.width/2,mousePos[1]))
 
         if self.horizontal == True:
             if self.get_box_pos()[0] < self.pos[0]:
@@ -80,10 +88,10 @@ class Slider(pygame.sprite.Sprite):
             elif self.get_box_pos()[0] > self.pos[0] + self.width:
                 self.set_box_pos((self.pos[0] + self.width,self.pos[1]))
         else:
-            if self.get_box_pos()[1] < self.pos[1]:
-                self.set_box_pos((self.pos[0],self.pos[1]))
-            elif self.get_box_pos()[1] > self.pos[1] + self.height:
-                self.set_box_pos((self.pos[0],self.pos[1] + self.height))
+            if self.get_box_pos()[1] < self.pos[1] - self.height/2:
+                self.set_box_pos((self.pos[0] + self.width/2,self.pos[1] - self.height/2))
+            elif self.get_box_pos()[1] > self.pos[1] + self.height/2:
+                self.set_box_pos((self.pos[0] + self.width/2,self.pos[1] + self.height/2))
             
     def draw(self,screen):
         pygame.draw.rect(screen,self.color,self.rect)
@@ -367,6 +375,7 @@ class WindowPaint(WindowRectangle):
         self.wheel = Paint.ColorWheel((10,10),200)
 
         self.value_slider = Slider((15,235))
+        self.size_slider = Slider((230,110),False)
 
         #brush1 = Paint.PaintBrush((275,10+(10)),10)
         brush2 = Paint.PaintBrush((275,10+(20*1.5)),20)
@@ -398,11 +407,12 @@ class WindowPaint(WindowRectangle):
                     for s in self.brushes:
                         if s is not i:
                             s.selected = False
-            i.update(events,mousePos)
+            i.update(events,mousePos,self.size_slider)
             
         self.currentColor.update(events,mousePos)
         self.wheel.update(events,mousePos,self.currentColor,self.value_slider)
         self.value_slider.update(events,mousePos)
+        self.size_slider.update(events,mousePos)
         
     def draw(self,screen):
         WindowRectangle.draw(self,screen)
@@ -411,3 +421,4 @@ class WindowPaint(WindowRectangle):
         self.currentColor.draw(screen)
         self.wheel.draw(screen)
         self.value_slider.draw(screen)
+        self.size_slider.draw(screen)

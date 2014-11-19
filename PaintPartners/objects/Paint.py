@@ -81,7 +81,9 @@ class ColorWheel(object):
     
 class PaintBrush(object):
     def __init__(self,pos,r):
+        self.radiusOld = r/2
         self.radius = r/2
+        self.scale = 1.0
         self.pos = pos
         self.image = pygame.Surface((r,r))
         self.image.fill((255,255,255))
@@ -101,6 +103,9 @@ class PaintBrush(object):
         self.image = self.pixels.make_surface()
         del self.pixels
 
+    def set_scale(self,scale):
+        self.scale = scale
+        
     def is_click(self,events):
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -112,8 +117,14 @@ class PaintBrush(object):
             return False
         return True
     
-    def update(self,events,mousePos):
-        pass
+    def update(self,events,mousePos,sizeSlider):
+        if sizeSlider.moving == True:
+            for event in events:
+                if event.type == MOUSEBUTTONUP:
+                    value = sizeSlider.get_value()
+                    self.scale = 1.0 + value
+                    self.radius = int(1.0 + (self.radiusOld * self.scale))
+    
     def draw(self,screen):
         if self.selected == True:
             pygame.draw.rect(screen,(35,35,35),self.image_rect_border)
