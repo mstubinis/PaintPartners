@@ -377,12 +377,12 @@ class WindowPaint(WindowRectangle):
         self.value_slider = Slider((15,235))
         self.size_slider = Slider((230,110),False)
 
-        #brush1 = Paint.PaintBrush((275,10+(10)),10)
-        brush2 = Paint.PaintBrush((275,10+(20*1.5)),20)
+        brush1 = Paint.PaintBrush((275,20),20,"Square")
+        brush2 = Paint.PaintBrush((275,50),20)
         #brush3 = Paint.PaintBrush((275,10+(30*2)),30)
         #brush4 = Paint.PaintBrush((275,10+(40*2.5)),40)
         
-        #self.brushes.append(brush1)
+        self.brushes.append(brush1)
         self.brushes.append(brush2)
         #self.brushes.append(brush3)
         #self.brushes.append(brush4)
@@ -398,6 +398,10 @@ class WindowPaint(WindowRectangle):
 
     def update(self,events,mousePos):
         WindowRectangle.update(self,events,mousePos)
+     
+        self.currentColor.update(events,mousePos)
+        self.wheel.update(events,mousePos,self.currentColor,self.value_slider)
+        self.value_slider.update(events,mousePos)
 
         for i in self.brushes:
             if i.is_click(events) == True:
@@ -408,17 +412,16 @@ class WindowPaint(WindowRectangle):
                         if s is not i:
                             s.selected = False
             i.update(events,mousePos,self.size_slider)
-            
-        self.currentColor.update(events,mousePos)
-        self.wheel.update(events,mousePos,self.currentColor,self.value_slider)
-        self.value_slider.update(events,mousePos)
+
         self.size_slider.update(events,mousePos)
         
     def draw(self,screen):
         WindowRectangle.draw(self,screen)
-        for i in self.brushes:
-            i.draw(screen)
+        
         self.currentColor.draw(screen)
         self.wheel.draw(screen)
         self.value_slider.draw(screen)
         self.size_slider.draw(screen)
+
+        for i in self.brushes:
+            i.draw(screen)

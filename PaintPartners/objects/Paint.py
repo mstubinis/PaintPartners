@@ -66,13 +66,15 @@ class ColorWheel(object):
         
         if self.is_mouse_over(mousePos) == True:
             if self.is_click(events) == True:
-                try:
-                    xPos = mousePos[0] - self.pos[0]
-                    yPos = mousePos[1] - self.pos[1]
-                    currentColor.color_fill = self.image.unmap_rgb(self.pixels[xPos,yPos])
-                except:
-                    pass
-                return
+                currentColor.color_fill = self.get_color(mousePos[0],mousePos[1])
+
+    def get_color(self,mouseX,mouseY):
+        try:
+            xPos = int(mouseX - self.pos[0])
+            yPos = int(mouseY - self.pos[1])
+            return self.image.unmap_rgb(self.pixels[xPos,yPos])
+        except:
+            return (0,0,0)
                         
     def draw(self,screen):
         pygame.draw.rect(screen,(0,0,0),self.image_rect_border)
@@ -80,7 +82,7 @@ class ColorWheel(object):
 
     
 class PaintBrush(object):
-    def __init__(self,pos,r):
+    def __init__(self,pos,r,brushType="Circle"):
         self.radiusOld = r/2
         self.radius = r/2
         self.scale = 1.0
@@ -93,18 +95,28 @@ class PaintBrush(object):
         self.image_rect_border.midtop = (pos[0]+1,pos[1]-1)
         self.selected = False
         self.pixels = pygame.PixelArray(self.image)
+        self.type = brushType
         for x in range(r):
             for y in range(r):
                 side1 = (x - self.radius)
                 side2 = (y - self.radius)
                 side3 = math.sqrt((side1**2) + (side2**2))
-                if side3 <= self.radius:
+                if side3 <= self.radius or self.type == "Square":
                     self.pixels[x,y] = (0,0,0)
         self.image = self.pixels.make_surface()
         del self.pixels
 
-    def set_scale(self,scale):
-        self.scale = scale
+    def paint(self,startX,startY,paintImage,currentColor):
+        for i in range(self.radius*2):
+            for j in range(self.radius*2):
+                side1 = (i - self.radius)
+                side2 = (j - self.radius)
+                side3 = math.sqrt((side1**2) + (side2**2))
+                if side3 <= self.radius or self.type == "Square":
+                    if startX+i > 0 and startX+i < paintImage.width and startY+j > 0 and startY+j < paintImage.height:
+                        col = (currentColor.color_fill[2],currentColor.color_fill[1],currentColor.color_fill[0])
+                        paintImage.pixels[startX+i,startY+j] = col
+                        paintImage.pixel_buffer[(startX+i,startY+j)] = paintImage.rgb_to_hex((col[0],col[1],col[2])) 
         
     def is_click(self,events):
         for event in events:
@@ -121,13 +133,13 @@ class PaintBrush(object):
         if sizeSlider.moving == True:
             for event in events:
                 if event.type == MOUSEBUTTONUP:
-                    value = sizeSlider.get_value()
+                    value = sizeSlider.get_value() + 0.5
                     self.scale = 1.0 + value
                     self.radius = int(1.0 + (self.radiusOld * self.scale))
     
     def draw(self,screen):
         if self.selected == True:
-            pygame.draw.rect(screen,(35,35,35),self.image_rect_border)
+            pygame.draw.rect(screen,(100,100,255),self.image_rect_border)
         screen.blit(self.image,self.image_rect)
     
 class PaintImage(object):
@@ -237,16 +249,9 @@ class PaintImage(object):
                 if currentBrush != None:
                     startX = x - currentBrush.radius
                     startY = y - currentBrush.radius
-                    for i in range(currentBrush.radius*2):
-                        for j in range(currentBrush.radius*2):
-                            side1 = (i - currentBrush.radius)
-                            side2 = (j - currentBrush.radius)
-                            side3 = math.sqrt((side1**2) + (side2**2))
-                            if side3 <= currentBrush.radius:
-                                if startX+i > 0 and startX+i < self.width and startY+j > 0 and startY+j < self.height:
-                                    col = currentColor.color_fill
-                                    self.pixels[startX+i,startY+j] = col
-                                    self.pixel_buffer[(startX+i,startY+j)] = self.rgb_to_hex((col[0],col[1],col[2])) 
+                    
+                    currentBrush.paint(startX,startY,self,currentColor)
+
                 self.image = self.pixels.make_surface()
 
         #finish off by sending self.pixel_buffer data to a string, and send that over to the server
