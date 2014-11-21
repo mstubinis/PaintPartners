@@ -57,12 +57,6 @@ class ServerListenThread(Thread):
             except socket.error as msg:
                 print("Socket error!: " + str(msg))
                 pass
-
-            #clean up any innactive threads
-            for key,value in self.server.clients.iteritems():
-                if value.running == False:
-                    print("Removing Client: " + str(key))
-                    self.server.clients = removekey(self.server.clients,key)
                     
 class ProcessThread(Thread):
     def __init__(self,server):
@@ -82,6 +76,12 @@ class ProcessThread(Thread):
                 value = self.q.get(block=True)
                 self.server.process(value,self.username)
                 self.username = ""
+                
+            #clean up any innactive threads
+            for key,value in self.server.clients.iteritems():
+                if value.running == False:
+                    print("Removing Client: " + str(key))
+                    self.server.clients = removekey(self.server.clients,key)
 
 class ClientThread(Thread):
     def __init__(self,server,socket,address):
@@ -122,7 +122,10 @@ class InputThread(Thread):
             elif userinput == "print clients detail":
                 self.server.print_clients_detail()
             elif userinput[:4] == "kick":
-                self.server.reply_to_client_username("_KICK_",userinput[5:])
+                if self.server.program.admin == userinput[5:]:
+                    print("Cannot kick the admin from the server!")
+                else:
+                    self.server.reply_to_client_username("_KICK_",userinput[5:])
             elif userinput[:4] == "lock":
                 self.server.reply_to_client_username("_LOCK_",userinput[5:])
             elif userinput[:6] == "unlock":
@@ -131,6 +134,7 @@ class InputThread(Thread):
 class Server():
     def __init__(self):
         self.clients = {}
+        self.admin = ""
         self.load_cfg()
     
         self.process_thread = ProcessThread(self)
@@ -214,7 +218,11 @@ class Server():
         source_socket.send(message)
         
     def reply_to_client_username(self,message,username):
-        self.clients[username].conn.send(message)
+        for key,value in self.clients.iteritems():
+            if key == username:
+                self.clients[username].conn.send(message)
+                return
+        print("Could not find username: " + username)
 
     def process_init(self,data,client_thread):
         if data:

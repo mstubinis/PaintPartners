@@ -15,6 +15,7 @@ class TextField(pygame.sprite.Sprite):
 
         self.maxChars = maxChars
         self.message = ""
+        self.display_message = ""
         temp_message = ""
         for i in range(maxChars):
             temp_message += "X"
@@ -42,6 +43,7 @@ class TextField(pygame.sprite.Sprite):
         return True
 
     def set_pos(self,pos):
+        self.pos = pos
         self.rect.center = (pos[0]+ self.font.size(self.name)[0]/2,pos[1])
         self.rect_border.center = (pos[0] + self.font.size(self.name)[0]/2,pos[1])
         self.rect_name.center = (pos[0] - self.w/2 - 6,pos[1])
@@ -72,34 +74,37 @@ class TextField(pygame.sprite.Sprite):
      
     def set_message(self,message):
         self.message = message
+        self.display_message = message
         if self.password == False:
             self.text = self.font.render(self.message, 1,self.text_color)
         else:
-            message = ""
+            self.display_message = ""
             for i in self.message:
-                message += "*"
-            self.text = self.font.render(message, 1,self.text_color)
+                self.display_message += "*"
+            self.text = self.font.render(self.display_message, 1,self.text_color)
     def update_message(self,message):
         if ord(message) != 8 and ord(message) != 13:#not backspace key or enter key
             if len(self.message) < self.maxChars:
                 self.message += message
+                self.display_message += message
                 if self.password == False:
-                    self.text = self.font.render(self.message, 1,self.text_color)
+                    self.text = self.font.render(self.display_message, 1,self.text_color)
                 else:
-                    message = ""
+                    self.display_message = ""
                     for i in self.message:
-                        message += "*"
-                    self.text = self.font.render(message, 1,self.text_color)
+                        self.display_message += "*"
+                    self.text = self.font.render(self.display_message, 1,self.text_color)
         elif ord(message) == 8:#backspace key
             if len(self.message) > 0:
                 self.message = self.message[:-1]
+                self.display_message = self.message
                 if self.password == False:
-                    self.text = self.font.render(self.message, 1,self.text_color)
+                    self.text = self.font.render(self.display_message, 1,self.text_color)
                 else:
-                    message = ""
+                    self.display_message = ""
                     for i in self.message:
-                        message += "*"
-                    self.text = self.font.render(message, 1,self.text_color)
+                        self.display_message += "*"
+                    self.text = self.font.render(self.display_message, 1,self.text_color)
         elif ord(message) == 13:#enter key
             self.blink = False
             self.timer = 0
@@ -130,7 +135,7 @@ class TextField(pygame.sprite.Sprite):
         if self.selected == True:
             pygame.draw.rect(screen,(225,225,225),self.rect)
             if self.blink == True:
-                rectNew = pygame.Rect(self.rect.x+self.font.size(self.message)[0] + 8,self.rect.y+4,8,self.rect.h-9)
+                rectNew = pygame.Rect(self.rect.x+self.font.size(self.display_message)[0] + 8,self.rect.y+4,8,self.rect.h-9)
                 pygame.draw.rect(screen,(0,0,0),rectNew)
         else:
             pygame.draw.rect(screen,(255,255,255),self.rect)

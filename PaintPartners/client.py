@@ -31,6 +31,8 @@ class ClientThreadSend(Thread):
                 print("Socket error!: " +  str(msg))
                 self.client.disconnect_from_server()
         self.conn.close()
+        self.client.disconnect_from_server()
+        
 class ClientThreadRecieve(Thread):
     def __init__(self,client,socket):
         super(ClientThreadRecieve, self).__init__()
@@ -68,7 +70,9 @@ class ClientThreadRecieve(Thread):
             except socket.error as msg:
                 print("Socket error!: " + str(msg))
                 self.client.disconnect_from_server()
+                
         self.conn.close()
+        self.client.disconnect_from_server()
         
 class Client(object):
     def __init__(self,program):
@@ -144,6 +148,7 @@ class Client(object):
 
         if message != "":
             pass
+        print("Disconnecting client...")
 
     def send_message(self,message):
         if self.client_send != None:

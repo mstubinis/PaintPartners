@@ -14,6 +14,7 @@ class Program(object):
 
         self.font = pygame.font.SysFont("Arial", 16,True)
         self.state = "STATE_PROMPT"
+        self.admin = ""
 
         self.client = client.Client(self)
         
@@ -30,8 +31,8 @@ class Program(object):
             self.state = "STATE_MAIN"
             config = ConfigParser.RawConfigParser()
             config.readfp(open('server.cfg'))
-            username = config.get('ServerInfo', 'adminname')
-            self.client.connect_to_server(username,"localhost","",True)
+            self.admin = config.get('ServerInfo', 'adminname')
+            self.client.connect_to_server(self.admin,"localhost","",True)
 
     def update(self):
         events = pygame.event.get()
@@ -54,13 +55,12 @@ class Program(object):
                                                        self.window_prompt.server_field.message,
                                                        self.window_prompt.server_pass_field.message)
                 self.window_prompt.write_cfg()
+                
         for event in events:
-            if event.type == pygame.QUIT:
-                self.client.disconnect_from_server()
-                pygame.quit()
-                sys.exit(1)
-            elif event.type == VIDEORESIZE:
+            if event.type == VIDEORESIZE:
                 self.resize(event.w,event.h)
+            elif event.type == pygame.QUIT:
+                self.end()
                 
     def resize(self,width,height):
         self.size = (width,height)
@@ -88,8 +88,19 @@ class Program(object):
             self.clock.tick(60)
             self.update()
             self.draw()
+
+    def end(self):
+        print("OK")
+        self.client.disconnect_from_server()
+        print("OK1")
+        pygame.display.quit()
+        print("OK2")
+        pygame.quit()
+        print("OK3")
+        sys.exit(0)
+        print("OK4")
       
 if __name__ == "__main__":
     program = Program()
     program.main()
-    pygame.quit()
+    program.end()

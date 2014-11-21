@@ -120,6 +120,11 @@ class Button(pygame.sprite.Sprite):
         
         self.rect = pygame.Rect(0,0,self.width-2,self.height-2)
         self.rect.center = (self.pos[0],self.pos[1])
+
+    def set_pos(self,pos):
+        self.pos = pos
+        self.rect_border.center = (self.pos[0],self.pos[1])
+        self.rect.center = (self.pos[0],self.pos[1])
         
     def is_mouse_over(self,mousePos):
         if mousePos[0] < self.rect_border.x or mousePos[0] > self.rect_border.x + self.rect_border.w or mousePos[1] < self.rect_border.y or mousePos[1] > self.rect_border.y + self.rect_border.h:
@@ -345,11 +350,15 @@ class WindowPrompt(WindowRectangle):
     def resize(self,size,resize=True):
         if not resize:
             return
-        self.rect_border = pygame.Rect(0,0,self.width,self.height+1)
-        self.rect_border.center = (size[0]/2,size[1]/2)
+        self.pos = (size[0]/2,size[1]/2)
         
-        self.rect = pygame.Rect(0,0,self.width-2,self.height-1)
-        self.rect.center = (size[0]/2,size[1]/2)
+        self.rect_border.center = (self.pos[0],self.pos[1])
+        self.rect.center = (self.pos[0],self.pos[1])
+
+        self.username_field.set_pos((size[0]/2,self.pos[1] - self.height/2 + 50))
+        self.server_field.set_pos((size[0]/2,self.username_field.pos[1]+50))
+        self.server_pass_field.set_pos((size[0]/2,self.server_field.pos[1]+50))
+        self.connect_button.set_pos((size[0]/2,self.pos[1] + self.height/2 - 25))
 
     def update(self,events,mousePos):
         WindowRectangle.update(self,events,mousePos)
