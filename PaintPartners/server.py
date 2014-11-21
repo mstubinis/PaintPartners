@@ -276,6 +276,11 @@ class Server():
                 elif "_REQUESTIMAGE_" in data:
                     imgdata = self.program.image.tostring()
                     self.reply_to_client_username("_FULLDATA_" + imgdata,username)
+                elif "_DISCONNECT_" in data:
+                    li = parse_message(data,"_DISCONNECT_")
+                    print("Removing Client: " + li[1])
+                    self.clients = removekey(self.clients,li[1])
+                    
         
     def main(self):
         while True:

@@ -90,15 +90,10 @@ class Program(object):
             self.draw()
 
     def end(self):
-        print("OK")
         self.client.disconnect_from_server()
-        print("OK1")
         pygame.display.quit()
-        print("OK2")
         pygame.quit()
-        print("OK3")
         sys.exit(0)
-        print("OK4")
       
 if __name__ == "__main__":
     program = Program()

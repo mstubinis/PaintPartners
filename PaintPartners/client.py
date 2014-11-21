@@ -12,6 +12,7 @@ def GetIp():
 class ClientThreadSend(Thread):
     def __init__(self,client,socket):
         super(ClientThreadSend, self).__init__()
+        self.daemon = True
         self.running = True
         self.conn = socket
         self.q = Queue.Queue()
@@ -19,7 +20,6 @@ class ClientThreadSend(Thread):
     def add(self,data):
         self.q.put(data)
     def stop(self):
-        self.conn.close()
         self.running = False
     def run(self):
         while self.running == True:
@@ -30,17 +30,16 @@ class ClientThreadSend(Thread):
             except socket.error as msg:
                 print("Socket error!: " +  str(msg))
                 self.client.disconnect_from_server()
-        self.conn.close()
-        self.client.disconnect_from_server()
+                self.running = False
         
 class ClientThreadRecieve(Thread):
     def __init__(self,client,socket):
         super(ClientThreadRecieve, self).__init__()
+        self.daemon = True
         self.running = True
         self.conn = socket
         self.client = client
     def stop(self):
-        self.conn.close()
         self.running = False
     def run(self):
         while self.running == True:
@@ -70,9 +69,7 @@ class ClientThreadRecieve(Thread):
             except socket.error as msg:
                 print("Socket error!: " + str(msg))
                 self.client.disconnect_from_server()
-                
-        self.conn.close()
-        self.client.disconnect_from_server()
+                self.running = False
         
 class Client(object):
     def __init__(self,program):
@@ -141,8 +138,13 @@ class Client(object):
             return False
 
     def disconnect_from_server(self,message=""):
+        if self.connected == False:
+            return
+        self.send_message("_DISCONNECT_|" + self.username)
         self.client_send.stop()
         self.client_recv.stop()
+        self.client_send = None
+        self.client_recv = None
         self.connected = False
         self.program.state = "STATE_PROMPT"
 
@@ -152,4 +154,5 @@ class Client(object):
 
     def send_message(self,message):
         if self.client_send != None:
-            self.client_send.add(message)
+            if self.client_send.running == True:
+                self.client_send.add(message)

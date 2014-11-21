@@ -102,7 +102,7 @@ class Slider(pygame.sprite.Sprite):
             pygame.draw.rect(screen,(185,185,185),self.rect_box)
 
 class Button(pygame.sprite.Sprite):
-    def __init__(self,pos,message,font,borderColor=(0,0,0),fillColor=(225,225,225),highlightColor=(255,255,255)):
+    def __init__(self,pos,message,font,borderColor=(0,0,0),fillColor=(225,225,225),highlightColor=(175,175,175)):
         pygame.sprite.Sprite.__init__(self)
         self.pos = pos
         self.width = font.size(message)[0]+10
