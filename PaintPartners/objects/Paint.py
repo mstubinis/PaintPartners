@@ -157,6 +157,8 @@ class PaintImage(object):
         self.pixels = pygame.PixelArray(self.image.copy())
 
         self.pixel_buffer = {}
+
+        self.timer = 0.0
         
     def tostring(self):
         imgdata = pygame.image.tostring(self.image,"RGB")
@@ -238,7 +240,7 @@ class PaintImage(object):
             return False
         return True
         
-    def update(self,events,mousePos,currentColor,client,canEdit=True,currentBrush=None):
+    def update(self,events,elapsed,mousePos,currentColor,client,canEdit=True,currentBrush=None):
         if not canEdit:
             return
         x = mousePos[0] - self.pos[0]
@@ -253,13 +255,17 @@ class PaintImage(object):
                     currentBrush.paint(startX,startY,self,currentColor)
 
                 self.image = self.pixels.make_surface()
-
+                
+        self.timer += float(elapsed/1000.0)
         #finish off by sending self.pixel_buffer data to a string, and send that over to the server
         if not self.pixel_buffer:
             return
-        string = self.convert_buffer_to_string()
-        client.send_message("_PIXELDATA_" + string)
-        self.pixel_buffer.clear()
+
+        if self.timer > 0.2:
+            string = self.convert_buffer_to_string()
+            client.send_message("_PIXELDATA_" + string)
+            self.pixel_buffer.clear()
+            self.timer = 0
     
     def draw(self,screen):
         pygame.draw.rect(screen,(0,0,0),self.image_rect_border)

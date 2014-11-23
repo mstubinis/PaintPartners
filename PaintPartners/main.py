@@ -37,14 +37,15 @@ class Program(object):
     def update(self):
         events = pygame.event.get()
         mousePos = pygame.mouse.get_pos()
+        elapsed = self.clock.get_time()
         
         self.screen.fill(self.color)
 
         if "STATE_MAIN" in self.state:
             if self.state == "STATE_MAIN_NOEDIT":
-                self.image.update(events,mousePos,self.window_paint.currentColor,self.client,False,self.window_paint.currentBrush)
+                self.image.update(events,elapsed,mousePos,self.window_paint.currentColor,self.client,False,self.window_paint.currentBrush)
             else:
-                self.image.update(events,mousePos,self.window_paint.currentColor,self.client,True,self.window_paint.currentBrush)
+                self.image.update(events,elapsed,mousePos,self.window_paint.currentColor,self.client,True,self.window_paint.currentBrush)
             self.window_paint.update(events,mousePos)
             self.window_clients.update(events,mousePos)
             self.window_chat.update(events,mousePos)
