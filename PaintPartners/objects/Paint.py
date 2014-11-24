@@ -183,26 +183,23 @@ class PaintImage(object):
             return True
         return False
 
-    def paint(self,radius,bushType,startX,startY,currentColor):
+    def paint(self,radius,brushType,startX,startY,hexColor):
         for i in range(radius*2):
             for j in range(radius*2):
                 side1 = (i - radius)
                 side2 = (j - radius)
                 side3 = math.sqrt((side1**2) + (side2**2))
-                if side3 <= radius or bushType == "Square":
+                if side3 <= radius or brushType == "Square":
                     if startX+i > 0 and startX+i < self.width and startY+j > 0 and startY+j < self.height:
-                        col = (currentColor.color_fill[2],currentColor.color_fill[1],currentColor.color_fill[0])
-                        self.pixels[startX+i,startY+j] = col                
+                        self.pixels[startX+i,startY+j] = pygame.Color("#"+hexColor)             
 
     def process_brushes(self,data):
-        #
-        #                          x    y    color  type  radius
-        #
         #per brush format example: x500y1000#ffffffsquare17
         x = ""
         y = ""
         hexColor = ""
         radius = 0
+        radiusStr = ""
         brushType = ""
         count = 0
         for i in data:
@@ -239,28 +236,29 @@ class PaintImage(object):
                         break
             elif i == "`":
                 for w in range(6):
-                    if data[count+w+1].isdigit():
-                        radius += data[count+w+1]
-                    else:
-                        process = True
+                    try:
+                        if data[count+w+1].isdigit():
+                            radiusStr += data[count+w+1]
+                        else:
+                            radius = int(radiusStr)
+                            process = True
+                            break
+                    except:
+                        radius = 0
                         break
             if process == True:
                 if x != "" and y != "" and hexColor != "" and brushType != "" and radius != 0:
+                    
+                    self.paint(radius,brushType,(int(x)-radius),(int(y)-radius),hexColor)
 
-                    for s in range(radius*2):
-                        for j in range(radius*2):
-                            side1 = (s - radius)
-                            side2 = (j - radius)
-                            side3 = math.sqrt((side1**2) + (side2**2))
-                            if side3 <= radius or bushType == "Square":
-                                if (x-radius)+s > 0 and (x-radius)+s < self.width and (y-radius)+j > 0 and (y-radius)+j < self.height:
-                                    self.pixels[(x-radius)+s,(y-radius)+j] = pygame.Color("#"+hexColor) 
                     x = ""
                     y = ""
                     hexColor = ""
+                    radiusStr = ""
                     radius = 0
                     brushType = ""
             count += 1
+        self.image = self.pixels.make_surface()
                     
 
     def process_pixels(self,data):
@@ -343,8 +341,8 @@ class PaintImage(object):
                     startX = x - currentBrush.radius
                     startY = y - currentBrush.radius
                     
-                    currentBrush.paint(startX,startY,self,currentColor)
-                    #currentBrush.paint(startX,startY,self,currentColor,"Brush")
+                    #currentBrush.paint(startX,startY,self,currentColor)
+                    currentBrush.paint(startX,startY,self,currentColor,"Brush")
 
                 self.image = self.pixels.make_surface()
                 
@@ -354,11 +352,11 @@ class PaintImage(object):
             return
 
         if self.timer > 0.2:
-            string = self.convert_pixel_buffer_to_string()
-            #string = self.convert_brush_buffer_to_string()
+            #string = self.convert_pixel_buffer_to_string()
+            string = self.convert_brush_buffer_to_string()
             
-            client.send_message("_PIXELDATA_" + string)
-            #client.send_message("_BRUSHDATA_" + string)
+            #client.send_message("_PIXELDATA_" + string)
+            client.send_message("_BRUSHDATA_" + string)
             
             self.pixel_buffer.clear()
             self.brush_buffer.clear()
