@@ -273,6 +273,8 @@ class Server():
 
                 elif "_PIXELDATA_" in data:
                     self.broadcast_notsource(data,username)
+                elif "_BRUSHDATA_" in data:
+                    self.broadcast_notsource(data,username)
                 elif "_REQUESTIMAGE_" in data:
                     imgdata = self.program.image.tostring()
                     self.reply_to_client_username("_FULLDATA_" + imgdata,username)
