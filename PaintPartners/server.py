@@ -249,6 +249,7 @@ class Server():
                 self.clients[messages[1]] = client_thread
                 self.clients = removekey(self.clients,address_copy)
                 self.print_clients()
+                self.broadcast("_CONNECT_" + messages[1])
 
                 canEdit = config.get('ServerInfo', 'allowedits')
                 if canEdit == "1":
@@ -267,19 +268,18 @@ class Server():
                     break
   
             if data[0] == "_":
-                if "_CHATMESSAGE" in data:
+                if "_CHATMESSAGE_" in data:
                     #data[14:] - this should be the string data after the _CHATMESSAGE tag
-                    self.broadcast(data[14:])
+                    self.broadcast(data)
 
                 elif "_PIXELDATA_" in data:
-                    self.broadcast_notsource(data,username)
-                elif "_BRUSHDATA_" in data:
                     self.broadcast_notsource(data,username)
                 elif "_REQUESTIMAGE_" in data:
                     imgdata = self.program.image.tostring()
                     self.reply_to_client_username("_FULLDATA_" + imgdata,username)
                 elif "_DISCONNECT_" in data:
                     li = parse_message(data,"_DISCONNECT_")
+                    self.broadcast(data)
                     print("Removing Client: " + li[1])
                     self.clients = removekey(self.clients,li[1])
                     

@@ -59,14 +59,16 @@ class ClientThreadRecieve(Thread):
                         self.client.program.state = "STATE_MAIN_NOEDIT"
                     elif "_UNLOCK_" in data:
                         self.client.program.state = "STATE_MAIN"
-                    elif "_CHATMESSAGE" in data:
-                        #do whatever
-                        #self.client.program.window_chat.whatever
-                        pass
+                    elif "_CHATMESSAGE_" in data:
+                        self.client.program.window_chat.display_message(data)
                     elif "_PIXELDATA_" in data:
                         self.client.program.image.process_thread.add(data)
                     elif "_BRUSHDATA_" in data:
                         self.client.program.image.process_thread.add(data)
+                    elif "_CONNECT_" in data:
+                        self.client.program.window_clients.add_client(data[9:])
+                    elif "_DISCONNECT_" in data:
+                        self.client.program.window_clients.remove_client(data[13:])
                         
             except socket.error as msg:
                 print("Socket error!: " + str(msg))
@@ -143,6 +145,7 @@ class Client(object):
         if self.connected == False:
             return
         self.send_message("_DISCONNECT_|" + self.username)
+        self.program.window_clients.remove_client(username)
         self.client_send.stop()
         self.client_recv.stop()
         self.client_send = None
@@ -155,6 +158,6 @@ class Client(object):
         print("Disconnecting client...")
 
     def send_message(self,message):
-        if self.client_send != None:
+        if self.client_send is not None:
             if self.client_send.running == True:
                 self.client_send.add(message)
