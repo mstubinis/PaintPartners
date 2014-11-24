@@ -78,7 +78,7 @@ class ProcessThread(Thread):
                 self.username = ""
                 
             #clean up any innactive threads
-            for key,value in self.server.clients.iteritems():
+            for key,value in self.server.clients.items():
                 if value.running == False:
                     print("Removing Client: " + str(key))
                     self.server.clients = removekey(self.server.clients,key)

@@ -64,9 +64,9 @@ class ClientThreadRecieve(Thread):
                         #self.client.program.window_chat.whatever
                         pass
                     elif "_PIXELDATA_" in data:
-                        self.client.program.image.process_pixels(data)
+                        self.client.program.image.process_thread.add(data)
                     elif "_BRUSHDATA_" in data:
-                        self.client.program.image.process_brushes(data)
+                        self.client.program.image.process_thread.add(data)
                         
             except socket.error as msg:
                 print("Socket error!: " + str(msg))

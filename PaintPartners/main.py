@@ -92,6 +92,7 @@ class Program(object):
 
     def end(self):
         self.client.disconnect_from_server()
+        self.image.process_thread.stop()
         pygame.display.quit()
         pygame.quit()
         sys.exit(0)

@@ -1,5 +1,137 @@
-import pygame,copy,math,colorsys
+import pygame,copy,math,colorsys,Queue
 from pygame.locals import *
+from threading import Thread
+
+class PixelProcessThread(Thread):
+    def __init__(self,image):
+        super(PixelProcessThread, self).__init__()
+        self.daemon = True
+        self.running = True
+        self.q = Queue.Queue()
+        self.image = image
+    def add(self,data):
+        self.q.put(data)
+    def stop(self):
+        self.running = False
+    def process_pixels(self,data):
+        #per pixel format example: x500y1000#ffffff
+        x = ""
+        y = ""
+        hexColor = ""
+        count = 0
+        for i in data:
+            process = False
+            if i == ".":
+                for s in range(4):
+                    try:
+                        if data[count+s].isdigit():
+                            x += data[count+s]
+                    except:
+                        x = ""
+                        break
+            elif i == ",":
+                for t in range(4):
+                    try:
+                        if data[count+t].isdigit():
+                            y += data[count+t]
+                    except:
+                        y = ""
+                        break
+            elif i == "#":
+                for u in range(6):
+                    try:
+                        hexColor += data[count+u+1]
+                    except:
+                        hexColor = ""
+                        break
+                process = True
+            if process == True:
+                if x != "" and y != "" and hexColor != "":
+                    self.image.pixels[int(x),int(y)] = pygame.Color("#"+hexColor)
+                x = ""
+                y = ""
+                hexColor = ""
+            count += 1  
+        self.image.image = self.image.pixels.make_surface()
+        
+    def process_brushes(self,data):
+        #per brush format example: x500y1000#ffffffsquare17
+        x = ""
+        y = ""
+        hexColor = ""
+        radius = 0
+        radiusStr = ""
+        brushType = ""
+        count = 0
+        for i in data:
+            process = False
+            if i == ".":
+                for s in range(4):
+                    try:
+                        if data[count+s].isdigit():
+                            x += data[count+s]
+                    except:
+                        x = ""
+                        break
+            elif i == ",":
+                for t in range(4):
+                    try:
+                        if data[count+t].isdigit():
+                            y += data[count+t]
+                    except:
+                        y = ""
+                        break
+            elif i == "#":
+                for u in range(6):
+                    try:
+                        hexColor += data[count+u+1]
+                    except:
+                        hexColor = ""
+                        break
+            elif i == "|":
+                for v in range(6):
+                    try:
+                        brushType += data[count+v+1]
+                    except:
+                        brushType = ""
+                        break
+            elif i == "`":
+                for w in range(6):
+                    try:
+                        if data[count+w+1].isdigit():
+                            radiusStr += data[count+w+1]
+                        else:
+                            radius = int(radiusStr)
+                            process = True
+                            break
+                    except IndexError:
+                        radius = int(radiusStr)
+                        process = True
+                        break
+                    except not IndexError:
+                        radius = 0
+                        break
+            if process == True:
+                if x != "" and y != "" and hexColor != "" and brushType != "" and radius != 0:
+                    
+                    self.image.paint(radius,brushType,(int(x)-radius),(int(y)-radius),hexColor)
+                    x = ""
+                    y = ""
+                    hexColor = ""
+                    radiusStr = ""
+                    radius = 0
+                    brushType = ""
+            count += 1
+        self.image.image = self.image.pixels.make_surface()
+        
+    def run(self):
+        while self.running == True:
+            if not self.q.empty():
+                data = self.q.get(block=True)
+                if "_PIXELDATA_" in data:
+                    self.process_pixels(data[11:])
+                elif "_BRUSHDATA_" in data:
+                    self.process_brushes(data[11:])
 
 class ColorWheel(object):
     def __init__(self,pos,r):
@@ -106,7 +238,8 @@ class PaintBrush(object):
         self.image = self.pixels.make_surface()
         del self.pixels
 
-    def paint(self,startX,startY,paintImage,currentColor,bufferType="Pixel"):
+    def paint_pixels(self,startX,startY,paintImage,currentColor):
+        col = (currentColor.color_fill[2],currentColor.color_fill[1],currentColor.color_fill[0])
         for i in range(self.radius*2):
             for j in range(self.radius*2):
                 side1 = (i - self.radius)
@@ -114,13 +247,21 @@ class PaintBrush(object):
                 side3 = math.sqrt((side1**2) + (side2**2))
                 if side3 <= self.radius or self.type == "Square":
                     if startX+i > 0 and startX+i < paintImage.width and startY+j > 0 and startY+j < paintImage.height:
-                        col = (currentColor.color_fill[2],currentColor.color_fill[1],currentColor.color_fill[0])
                         paintImage.pixels[startX+i,startY+j] = col
-                        if bufferType == "Pixel":
-                            paintImage.pixel_buffer[(startX+i,startY+j)] = paintImage.rgb_to_hex((col[0],col[1],col[2]))
-        if bufferType == "Brush":
-            paintImage.brush_buffer[(startX+self.radius,startY+self.radius)] = paintImage.rgb_to_hex((col[0],col[1],col[2])) + "|" + self.type + "`" + str(self.radius)
-   
+                        paintImage.pixel_buffer[(startX+i,startY+j)] = paintImage.rgb_to_hex((col[0],col[1],col[2]))
+                        
+    def paint_brushes(self,startX,startY,paintImage,currentColor):
+        col = (currentColor.color_fill[2],currentColor.color_fill[1],currentColor.color_fill[0])
+        paintImage.brush_buffer[(startX+self.radius,startY+self.radius)] = paintImage.rgb_to_hex((col[0],col[1],col[2])) + "|" + self.type + "`" + str(self.radius)
+        for i in range(self.radius*2):
+            for j in range(self.radius*2):
+                side1 = (i - self.radius)
+                side2 = (j - self.radius)
+                side3 = math.sqrt((side1**2) + (side2**2))
+                if side3 <= self.radius or self.type == "Square":
+                    if startX+i > 0 and startX+i < paintImage.width and startY+j > 0 and startY+j < paintImage.height:
+                        paintImage.pixels[startX+i,startY+j] = col
+            
     def is_click(self,events):
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -163,6 +304,9 @@ class PaintImage(object):
         self.brush_buffer = {}
 
         self.timer = 0.0
+
+        self.process_thread = PixelProcessThread(self)
+        self.process_thread.start()
         
     def tostring(self):
         imgdata = pygame.image.tostring(self.image,"RGB")
@@ -191,117 +335,7 @@ class PaintImage(object):
                 side3 = math.sqrt((side1**2) + (side2**2))
                 if side3 <= radius or brushType == "Square":
                     if startX+i > 0 and startX+i < self.width and startY+j > 0 and startY+j < self.height:
-                        self.pixels[startX+i,startY+j] = pygame.Color("#"+hexColor)             
-
-    def process_brushes(self,data):
-        #per brush format example: x500y1000#ffffffsquare17
-        x = ""
-        y = ""
-        hexColor = ""
-        radius = 0
-        radiusStr = ""
-        brushType = ""
-        count = 0
-        for i in data:
-            process = False
-            if i == ".":
-                for s in range(4):
-                    try:
-                        if data[count+s].isdigit():
-                            x += data[count+s]
-                    except:
-                        x = ""
-                        break
-            elif i == ",":
-                for t in range(4):
-                    try:
-                        if data[count+t].isdigit():
-                            y += data[count+t]
-                    except:
-                        y = ""
-                        break
-            elif i == "#":
-                for u in range(6):
-                    try:
-                        hexColor += data[count+u+1]
-                    except:
-                        hexColor = ""
-                        break
-            elif i == "|":
-                for v in range(6):
-                    try:
-                        brushType += data[count+v+1]
-                    except:
-                        brushType = ""
-                        break
-            elif i == "`":
-                for w in range(6):
-                    try:
-                        if data[count+w+1].isdigit():
-                            radiusStr += data[count+w+1]
-                        else:
-                            radius = int(radiusStr)
-                            process = True
-                            break
-                    except:
-                        radius = 0
-                        break
-            if process == True:
-                if x != "" and y != "" and hexColor != "" and brushType != "" and radius != 0:
-                    
-                    self.paint(radius,brushType,(int(x)-radius),(int(y)-radius),hexColor)
-
-                    x = ""
-                    y = ""
-                    hexColor = ""
-                    radiusStr = ""
-                    radius = 0
-                    brushType = ""
-            count += 1
-        self.image = self.pixels.make_surface()
-                    
-
-    def process_pixels(self,data):
-        #per pixel format example: x500y1000#ffffff
-        x = ""
-        y = ""
-        hexColor = ""
-        count = 0
-        for i in data:
-            process = False
-            if i == ".":
-                for s in range(4):
-                    try:
-                        if data[count+s].isdigit():
-                            x += data[count+s]
-                    except:
-                        x = ""
-                        break
-            elif i == ",":
-                for t in range(4):
-                    try:
-                        if data[count+t].isdigit():
-                            y += data[count+t]
-                    except:
-                        y = ""
-                        break
-            elif i == "#":
-                for u in range(6):
-                    try:
-                        hexColor += data[count+u+1]
-                    except:
-                        hexColor = ""
-                        break
-                process = True
-            if process == True:
-                if x != "" and y != "" and hexColor != "":
-                    self.pixels[int(x),int(y)] = pygame.Color("#"+hexColor)
-                x = ""
-                y = ""
-                hexColor = ""
-            count += 1
-            
-        self.image = self.pixels.make_surface()
+                        self.pixels[startX+i,startY+j] = pygame.Color("#"+hexColor)
 
     def hex_to_rgb(self,value):
         value = value.lstrip('#')
@@ -336,18 +370,17 @@ class PaintImage(object):
         y = mousePos[1] - self.pos[1]
         if self.is_mouse_over(mousePos):
             if self.is_click(events):
-
                 if currentBrush != None:
                     startX = x - currentBrush.radius
                     startY = y - currentBrush.radius
                     
-                    #currentBrush.paint(startX,startY,self,currentColor)
-                    currentBrush.paint(startX,startY,self,currentColor,"Brush")
+                    #currentBrush.paint_pixels(startX,startY,self,currentColor)
+                    currentBrush.paint_brushes(startX,startY,self,currentColor)
 
                 self.image = self.pixels.make_surface()
                 
         self.timer += float(elapsed/1000.0)
-        #finish off by sending self.pixel_buffer data to a string, and send that over to the server
+
         if not self.pixel_buffer and not self.brush_buffer:
             return
 
@@ -361,6 +394,7 @@ class PaintImage(object):
             self.pixel_buffer.clear()
             self.brush_buffer.clear()
             self.timer = 0
+
     
     def draw(self,screen):
         pygame.draw.rect(screen,(0,0,0),self.image_rect_border)
