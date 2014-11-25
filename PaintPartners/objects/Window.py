@@ -217,7 +217,8 @@ class WindowClients(WindowTextlist):
             self.clients.append(client)
 
     def remove_client(self,client):
-        self.clients.remove(client)
+        if not client in self.clients:
+            self.clients.remove(client)
             
     def update(self,events,mousePos):
         WindowTextlist.update(self,events,mousePos)
