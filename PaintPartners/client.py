@@ -3,6 +3,24 @@ from urllib2 import urlopen
 from time import sleep
 from threading import Thread
 
+def parse_message(message,typeMessage=""):
+    messageList = []
+    count = 0
+    part = ''
+    for char in message:
+        if count != 0:
+            if count > len(typeMessage)-1:
+                if char == "_" or char == "|":
+                    messageList.append(part)
+                    part = ''
+                else:
+                    part += char
+                    if count == len(message) - 1:
+                        messageList.append(part)
+                        part = ''
+        count += 1
+    return messageList
+
 def GetIp():
     try:
         return json.load(urlopen('http://httpbin.org/ip'))['origin']
@@ -65,8 +83,14 @@ class ClientThreadRecieve(Thread):
                         self.client.program.image.process_thread.add(data)
                     elif "_BRUSHDATA_" in data:
                         self.client.program.image.process_thread.add(data)
+
+                        
                     elif "_CONNECT_" in data:
-                        self.client.program.window_clients.add_client(data[9:])
+                        li = parse_message(data,"_CONNECT_")
+                        for i in li:
+                            self.client.program.window_clients.add_client(i)
+                        self.client.program.window_clients.sort_clients()
+                            
                     elif "_DISCONNECT_" in data:
                         self.client.program.window_clients.remove_client(data[13:])
                         

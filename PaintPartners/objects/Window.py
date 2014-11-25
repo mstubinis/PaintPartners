@@ -219,6 +219,9 @@ class WindowClients(WindowTextlist):
     def remove_client(self,client):
         if not client in self.clients:
             self.clients.remove(client)
+
+    def sort_clients(self):
+        self.clients.sort()
             
     def update(self,events,mousePos):
         WindowTextlist.update(self,events,mousePos)

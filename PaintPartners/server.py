@@ -249,13 +249,18 @@ class Server():
                 self.clients[messages[1]] = client_thread
                 self.clients = removekey(self.clients,address_copy)
                 self.print_clients()
-                self.broadcast("_CONNECT_" + messages[1])
-
+ 
                 canEdit = config.get('ServerInfo', 'allowedits')
                 if canEdit == "1":
                     self.reply_to_client("_CONNECTVALID_",client_thread.conn)
                 else:
                     self.reply_to_client("_CONNECTVALIDNOEDIT_",client_thread.conn)
+
+                msg = ""
+                for key,value in self.clients.items():
+                    msg += key + "|"
+                msg = msg[:-1]
+                self.broadcast("_CONNECT_" + msg)
 
     #This method prcesses string data          
     def process(self,data,username):
