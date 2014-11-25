@@ -127,9 +127,19 @@ class InputThread(Thread):
                 else:
                     self.server.reply_to_client_username("_KICK_",userinput[5:])
             elif userinput[:4] == "lock":
-                self.server.reply_to_client_username("_LOCK_",userinput[5:])
+                if userinput == "lock":
+                    self.server.broadcast("_LOCK_")
+                else:
+                    self.server.reply_to_client_username("_LOCK_",userinput[5:])
             elif userinput[:6] == "unlock":
-                self.server.reply_to_client_username("_UNLOCK_",userinput[7:])
+                if userinput == "unlock":
+                    self.server.broadcast("_UNLOCK_")
+                else:
+                    self.server.reply_to_client_username("_UNLOCK_",userinput[7:])
+            elif userinput[:4] == "help":
+                print("\r\n-----------------------------------------------------------")
+                print("--------------------SERVER COMMANDS----------------------------")
+                print("print clients: prints the list of all connected clients")
 
 class Server():
     def __init__(self):

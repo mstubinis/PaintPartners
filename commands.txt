@@ -1,0 +1,24 @@
+Server admins have access to the python console controlling their server.
+There are several commands that exist
+to allow the admins to control their servers.
+
+Here are the commands:
+
+- print clients: prints the list of all connected clients.
+
+- print clients detail: prints the list of all connected clients, their IP Addresses, and wether or not their sockets are connected
+
+- kick <username>: kicks the specified client from the server (example: kick rob)
+
+- lock: prevents all currently connected clients from modifying the paint board
+
+- lock <username>: prevents the specified client from modifying the paint board (example: lock rob)
+
+- unlock: gives all currently connected clients permission to modify the paint board
+
+- unlock <username>: gives the specified client permission to modify the paint board (example: unlock rob)
+
+- help: prints out the commands useable by the server admin and what each command does.
+
+
+
