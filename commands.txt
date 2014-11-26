@@ -1,6 +1,4 @@
 Server admins have access to the python console controlling their server.
-There are several commands that exist
-to allow the admins to control their servers.
 
 Here are the commands:
 
@@ -19,6 +17,3 @@ Here are the commands:
 - unlock <username>: gives the specified client permission to modify the paint board (example: unlock rob)
 
 - help: prints out the commands useable by the server admin and what each command does.
-
-
-

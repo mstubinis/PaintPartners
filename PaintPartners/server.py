@@ -122,24 +122,33 @@ class InputThread(Thread):
             elif userinput == "print clients detail":
                 self.server.print_clients_detail()
             elif userinput[:4] == "kick":
-                if self.server.program.admin == userinput[5:]:
-                    print("Cannot kick the admin from the server!")
-                else:
-                    self.server.reply_to_client_username("_KICK_",userinput[5:])
+                if userinput != "kick":
+                    if self.server.program.admin == userinput[5:]:
+                        print("Cannot kick the admin from the server!")
+                    else:
+                        self.server.reply_to_client_username("_KICK_",userinput[5:])
             elif userinput[:4] == "lock":
                 if userinput == "lock":
-                    self.server.broadcast("_LOCK_")
+                    self.server.broadcast_noadmin("_LOCK_")
                 else:
                     self.server.reply_to_client_username("_LOCK_",userinput[5:])
             elif userinput[:6] == "unlock":
                 if userinput == "unlock":
-                    self.server.broadcast("_UNLOCK_")
+                    self.server.broadcast_noadmin("_UNLOCK_")
                 else:
                     self.server.reply_to_client_username("_UNLOCK_",userinput[7:])
             elif userinput[:4] == "help":
-                print("\r\n-----------------------------------------------------------")
-                print("--------------------SERVER COMMANDS----------------------------")
-                print("print clients: prints the list of all connected clients")
+                print("\r\n----------------------------------------------------------------------------")
+                print("----------------------------SERVER COMMANDS---------------------------------")
+                print("\r\nprint clients: prints the list of all connected clients")
+                print("\r\nprint clients detail: prints the list of all connected clients,\ntheir IP Addresses, and wether or not their sockets are connected")
+                print("\r\nkick <username>: kicks the specified client from the\nserver (example: kick rob)")
+                print("\r\nlock: prevents all currently connected clients from modifying\nthe paint board")
+                print("\r\nlock <username>: prevents the specified client from modifying\nthe paint board (example: lock rob)")
+                print("\r\nunlock: gives all currently connected clients permission to\nmodify the paint board")
+                print("\r\nunlock <username>: gives the specified client permission to\nmodify the paint board (example: unlock rob)")
+                print("\r\nhelp: prints out the commands useable by the server admin and\nwhat each command does")
+                print("----------------------------------------------------------------------------\r\n")
 
 class Server():
     def __init__(self):
@@ -219,6 +228,10 @@ class Server():
     def broadcast(self,message):
         for key,value in self.clients.iteritems():
             value.conn.send(message)
+    def broadcast_noadmin(self,message):
+        for key,value in self.clients.iteritems():
+            if key != self.admin:
+                value.conn.send(message)
     def broadcast_notsource(self,message,username):
         for key,value in self.clients.iteritems():
             if key != username:
