@@ -127,7 +127,7 @@ class Client(object):
                 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.connection_destination = server
                 if server.lower() == "localhost" or admin == True:
-                    self.connection_destination = GetIp()
+                    self.connection_destination = "localhost"
 
                 self.username = username
                 self.server_pass = server_pass

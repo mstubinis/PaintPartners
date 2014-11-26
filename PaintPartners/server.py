@@ -21,12 +21,6 @@ def parse_message(message,typeMessage=""):
         count += 1
     return messageList
 
-def GetIp():
-    try:
-        return json.load(urlopen('http://httpbin.org/ip'))['origin']
-    except:
-        print("Could not obtain IP Address")
-
 def removekey(dictionary, key):
     r = dict(dictionary)
     del r[key]
@@ -39,7 +33,7 @@ class ServerListenThread(Thread):
         self.server = server
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.host = GetIp()
+        self.host = 'localhost'
         self.port = 6121
         self.s.bind((self.host, self.port))
         print(str(self.host) + " Listening on port : " + str(self.port)+"\r\n")
