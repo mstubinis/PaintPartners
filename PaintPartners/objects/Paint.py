@@ -162,6 +162,10 @@ class PixelProcessThread(Thread):
                     radiusStr = ""
                     radius = 0
                     brushType = ""
+
+                    if mouseX != "" and mouseY != "":
+                        self.clientWindow[self.clientWindow.username].set_pos((mouseX,mouseY))
+                    
             count += 1
         self.image.image = self.image.pixels.make_surface()
         

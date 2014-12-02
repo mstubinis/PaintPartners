@@ -261,11 +261,13 @@ class WindowClients(WindowTextlist):
     def sort_clients(self):
         self.clients.sort()
             
-    def update(self,events,mousePos):
+    def update(self,events,mousePos,username):
         WindowTextlist.update(self,events,mousePos)
 
         for key,value in self.clients_icons.items():
-            value.set_pos(mousePos)
+            if key == username and username != "":
+                value.set_pos(mousePos)
+                break
 
     def draw(self,screen,font,image):
         WindowTextlist.draw(self,screen,font)

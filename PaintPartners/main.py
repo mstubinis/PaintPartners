@@ -52,7 +52,7 @@ class Program(object):
             else:
                 self.image.update(events,elapsed,mousePos,self.window_paint.currentColor,self.client,True,self.window_paint.currentBrush)
             self.window_paint.update(events,mousePos)
-            self.window_clients.update(events,mousePos)
+            self.window_clients.update(events,mousePos,self.client.username)
             self.window_chat.update(events,mousePos)
         elif self.state == "STATE_PROMPT":
             self.window_prompt.update(events,mousePos)
