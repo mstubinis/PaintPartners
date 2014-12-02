@@ -169,7 +169,7 @@ class Client(object):
         if self.connected == False:
             return
         self.send_message("_DISCONNECT_|" + self.username)
-        self.program.window_clients.remove_client(username)
+        self.program.window_clients.remove_client(self.username)
         self.client_send.stop()
         self.client_recv.stop()
         self.client_send = None
