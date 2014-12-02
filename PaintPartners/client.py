@@ -88,7 +88,7 @@ class ClientThreadRecieve(Thread):
                     elif "_CONNECT_" in data:
                         li = parse_message(data,"_CONNECT_")
                         for i in li:
-                            self.client.program.window_clients.add_client(i)
+                            self.client.program.window_clients.add_client(i,self.client.program.font)
                         self.client.program.window_clients.sort_clients()
                             
                     elif "_DISCONNECT_" in data:
@@ -146,7 +146,7 @@ class Client(object):
                 
                 self.send_message("_CONNECT_|" + self.username + "|" + self.server_pass)
 
-                self.program.window_clients.add_client(username)
+                self.program.window_clients.add_client(username,self.program.font)
                 self.program.window_chat.chat_field.set_name(username)
                 self.program.window_chat.chat_field.set_maxchars(int(self.program.window_chat.width/self.program.font.size("X")[0]) - len(username)-2)
                 self.program.window_chat.chat_field.set_pos((self.program.window_chat.pos[0] + self.program.window_chat.width/2,

@@ -1,6 +1,39 @@
 import pygame,Paint,TextField,ConfigParser
 from pygame.locals import *
 
+def removekey(dictionary, key):
+    r = dict(dictionary)
+    del r[key]
+    return r
+
+class TextObject(pygame.sprite.Sprite):
+    def __init__(self,pos,font,message,color=(0,0,0)):
+        pygame.sprite.Sprite.__init__(self)
+        self.pos = pos
+
+        self.font = font
+        self.message = message
+        self.color = color
+        self.text = self.font.render(self.message,1,self.color)
+
+        self.rect = pygame.Rect(0,0,self.font.size(self.message)[0],self.font.size(self.message)[1])
+        self.rect.center = (self.pos[0],self.pos[1])
+
+    def set_pos(self,pos):
+        self.pos = pos
+        self.rect.center = (self.pos[0],self.pos[1])
+
+    def is_in_paint_window(self,image):
+        if self.pos[0] < image.pos[0] or self.pos[1] < image.pos[1] or self.pos[1] > image.pos[1] + image.height or self.pos[0] > image.pos[0] + image.width:
+            return False
+        return True
+
+    def update(self,events,mousePos):
+        pass
+
+    def draw(self,screen):
+        screen.blit(self.text, self.rect)
+
 class Slider(pygame.sprite.Sprite):
     def __init__(self,pos,horizontal=True,length=190,height=8,boxLength=5,boxHeight=25,color=(65,65,65),boxColor=(225,225,225),boxBorder=(0,0,0)):
         pygame.sprite.Sprite.__init__(self)
@@ -202,6 +235,8 @@ class WindowClients(WindowTextlist):
     def __init__(self,programSize,pos,w=100,h=600,borderColor=(0,0,0),fillColor=(255,255,255)):
         WindowTextlist.__init__(self,programSize,pos,w,h,borderColor,fillColor)
         self.clients = []
+        self.clients_icons = {}
+        
     def resize(self,size,resize=True):
         if not resize:
             return
@@ -212,13 +247,16 @@ class WindowClients(WindowTextlist):
         self.rect = pygame.Rect(0,0,self.width-2,self.height-1)
         self.rect.topleft = (self.pos[0]+1,self.pos[1])
 
-    def add_client(self,client):
+    def add_client(self,client,font):
         if not client in self.clients:
             self.clients.append(client)
+            icon = TextObject((0,0),font,client)
+            self.clients_icons[client] = icon
 
     def remove_client(self,client):
         if not client in self.clients:
             self.clients.remove(client)
+            self.clients_icons = removekey(self.clients_icons,client)
 
     def sort_clients(self):
         self.clients.sort()
@@ -226,7 +264,10 @@ class WindowClients(WindowTextlist):
     def update(self,events,mousePos):
         WindowTextlist.update(self,events,mousePos)
 
-    def draw(self,screen,font):
+        for key,value in self.clients_icons.items():
+            value.set_pos(mousePos)
+
+    def draw(self,screen,font,image):
         WindowTextlist.draw(self,screen,font)
 
         #loop through each of the client's names and render them to the screen as text
@@ -235,6 +276,10 @@ class WindowClients(WindowTextlist):
             label = font.render(i, 1, (0,0,0))
             screen.blit(label, (self.pos[0] + 8, self.pos[1] + 8 + (count * (font.size("X")[1]+4))))
             count += 1
+
+        for key,value in self.clients_icons.items():
+            if value.is_in_paint_window(image):
+                value.draw(screen)
             
 #This window's functionality assigned to Pharas
 #

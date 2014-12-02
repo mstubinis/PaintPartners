@@ -21,9 +21,14 @@ class Program(object):
         #create windows
         self.window_prompt = Window.WindowPrompt(self.size,(self.size[0]/2,self.size[1]/2),self.font,450,275)
         self.window_paint = Window.WindowPaint(self.size,(4,4),300,self.size[1]/2-4)
-        self.image = Paint.PaintImage((self.window_paint.pos[0] + self.window_paint.width + 4,self.window_paint.pos[1]),self.size[0] - self.window_paint.width - 14,550)
-        
         self.window_clients = Window.WindowClients(self.size,(4,self.window_paint.height+8),300,self.size[1]/2-4)
+        
+        self.image = Paint.PaintImage((self.window_paint.pos[0] + self.window_paint.width + 4,
+                                       self.window_paint.pos[1]),
+                                       self.size[0] - self.window_paint.width - 14,
+                                       550,
+                                       self.window_clients)
+        
         self.window_chat = Window.WindowChat(self.size,(self.window_paint.pos[0] + self.window_paint.width + 4,self.image.pos[1] + self.image.height + 6),
                                              self.font,self.client,self.size[0] - self.window_paint.width - 12,self.size[1] - self.image.height - 15)
           
@@ -78,7 +83,7 @@ class Program(object):
         if "STATE_MAIN" in self.state:
             self.image.draw(self.screen)
             self.window_paint.draw(self.screen)
-            self.window_clients.draw(self.screen,self.font)
+            self.window_clients.draw(self.screen,self.font,self.image)
             self.window_chat.draw(self.screen,self.font)
         elif self.state == "STATE_PROMPT":
             self.window_prompt.draw(self.screen)

@@ -1,27 +1,50 @@
-import pygame,copy,math,colorsys,Queue
+import pygame,copy,math,colorsys,Queue,Window
 from pygame.locals import *
 from threading import Thread
 
 class PixelProcessThread(Thread):
-    def __init__(self,image):
+    def __init__(self,image,clientWindow):
         super(PixelProcessThread, self).__init__()
         self.daemon = True
         self.running = True
         self.q = Queue.Queue()
         self.image = image
+        self.clientWindow = clientWindow
     def add(self,data):
         self.q.put(data)
     def stop(self):
         self.running = False
     def process_pixels(self,data):
         #per pixel format example: x500y1000#ffffff
+
+
+        mouseX = ""
+        mouseY = ""
+
+        
         x = ""
         y = ""
         hexColor = ""
         count = 0
         for i in data:
             process = False
-            if i == ".":
+            if i == ";": #mouseX
+                for r in range(4):
+                    try:
+                        if data[count+r].isdigit():
+                            mouseX += data[count+r]
+                    except:
+                        mouseX = ""
+                        break
+            elif i == ":": #mouseY
+                for q in range(4):
+                    try:
+                        if data[count+q].isdigit():
+                            mouseX += data[count+q]
+                    except:
+                        mouseY = ""
+                        break
+            elif i == ".":
                 for s in range(4):
                     try:
                         if data[count+s].isdigit():
@@ -56,6 +79,8 @@ class PixelProcessThread(Thread):
         
     def process_brushes(self,data):
         #per brush format example: x500y1000#ffffffsquare17
+        mouseX = ""
+        mouseY = ""
         x = ""
         y = ""
         hexColor = ""
@@ -65,7 +90,23 @@ class PixelProcessThread(Thread):
         count = 0
         for i in data:
             process = False
-            if i == ".":
+            if i == ";": #mouseX
+                for r in range(4):
+                    try:
+                        if data[count+r].isdigit():
+                            mouseX += data[count+r]
+                    except:
+                        mouseX = ""
+                        break
+            elif i == ":": #mouseY
+                for q in range(4):
+                    try:
+                        if data[count+q].isdigit():
+                            mouseX += data[count+q]
+                    except:
+                        mouseY = ""
+                        break
+            elif i == ".":
                 for s in range(4):
                     try:
                         if data[count+s].isdigit():
@@ -287,7 +328,7 @@ class PaintBrush(object):
         screen.blit(self.image,self.image_rect)
     
 class PaintImage(object):
-    def __init__(self,pos,w,h):
+    def __init__(self,pos,w,h,clientWindow):
         self.image = pygame.Surface((w,h))
         self.width = w
         self.height = h
@@ -305,7 +346,7 @@ class PaintImage(object):
 
         self.timer = 0.0
 
-        self.process_thread = PixelProcessThread(self)
+        self.process_thread = PixelProcessThread(self,clientWindow)
         self.process_thread.start()
         
     def tostring(self):
@@ -343,15 +384,15 @@ class PaintImage(object):
         return tuple(int(value[i:i+lv/3], 16) for i in range(0, lv, lv/3))
     def rgb_to_hex(self,rgb):
         return '%02x%02x%02x' % rgb
-    def convert_pixel_buffer_to_string(self):
-        string = ''
+    def convert_pixel_buffer_to_string(self,mousePos):
+        string = ";" + str(mousePos[0]) + ":" + str(mousePos[1])
         if len(self.pixel_buffer) == 0:
             return string
         for key,value in self.pixel_buffer.iteritems():
             string += "." + str(key[0]) + "," + str(key[1]) + "#" + value
         return string
-    def convert_brush_buffer_to_string(self):
-        string = ''
+    def convert_brush_buffer_to_string(self,mousePos):
+        string = ";" + str(mousePos[0]) + ":" + str(mousePos[1])
         if len(self.brush_buffer) == 0:
             return string
         for key,value in self.brush_buffer.iteritems():
@@ -385,8 +426,8 @@ class PaintImage(object):
             return
 
         if self.timer > 0.2:
-            #string = self.convert_pixel_buffer_to_string()
-            string = self.convert_brush_buffer_to_string()
+            #string = self.convert_pixel_buffer_to_string(mousePos)
+            string = self.convert_brush_buffer_to_string(mousePos)
             
             #client.send_message("_PIXELDATA_" + string)
             client.send_message("_BRUSHDATA_" + string)
