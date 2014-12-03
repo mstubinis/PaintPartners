@@ -14,35 +14,71 @@ class PixelProcessThread(Thread):
         self.q.put(data)
     def stop(self):
         self.running = False
-    def process_pixels(self,data):
-        #per pixel format example: x500y1000#ffffff
-
-
+    def process_mouse(self,data):
+        clientName = ""
         mouseX = ""
         mouseY = ""
+        count = 0
+        for i in data:
+            if i == "$": #clientName
+                for a in range(25):
+                    try:
+                        if data[count+a+1] != ";":
+                            clientName += data[count+a+1]
+                        else:
+                            break
+                    except:
+                        break
+            elif i == ";": #mouseX
+                for r in range(4):
+                    try:
+                        if data[count+r].isdigit():
+                            mouseX += data[count+r]
+                    except:
+                        break
+            elif i == ":": #mouseY
+                for q in range(4):
+                    try:
+                        if data[count+q].isdigit():
+                            mouseY += data[count+q]
+                    except:
+                        break
+            count += 1
+        if mouseX != "" and mouseY != "":
+            self.clientWindow.clients_icons[clientName].set_pos((int(mouseX),int(mouseY)))
 
-        
+    def process_pixels(self,data):
+        clientName = ""
+        mouseX = ""
+        mouseY = ""
         x = ""
         y = ""
         hexColor = ""
         count = 0
         for i in data:
             process = False
-            if i == ";": #mouseX
+            if i == "$": #clientName
+                for a in range(25):
+                    try:
+                        if data[count+a+1] != ";":
+                            clientName += data[count+a+1]
+                        else:
+                            break
+                    except:
+                        break
+            elif i == ";": #mouseX
                 for r in range(4):
                     try:
                         if data[count+r].isdigit():
                             mouseX += data[count+r]
                     except:
-                        mouseX = ""
                         break
             elif i == ":": #mouseY
                 for q in range(4):
                     try:
                         if data[count+q].isdigit():
-                            mouseX += data[count+q]
+                            mouseY += data[count+q]
                     except:
-                        mouseY = ""
                         break
             elif i == ".":
                 for s in range(4):
@@ -74,11 +110,14 @@ class PixelProcessThread(Thread):
                 x = ""
                 y = ""
                 hexColor = ""
+ 
             count += 1  
         self.image.image = self.image.pixels.make_surface()
+        if mouseX != "" and mouseY != "":
+            self.clientWindow.clients_icons[clientName].set_pos((int(mouseX),int(mouseY)))
         
     def process_brushes(self,data):
-        #per brush format example: x500y1000#ffffffsquare17
+        clientName = ""
         mouseX = ""
         mouseY = ""
         x = ""
@@ -90,21 +129,28 @@ class PixelProcessThread(Thread):
         count = 0
         for i in data:
             process = False
-            if i == ";": #mouseX
+            if i == "$": #clientName
+                for a in range(25):
+                    try:
+                        if data[count+a+1] != ";":
+                            clientName += data[count+a+1]
+                        else:
+                            break
+                    except:
+                        break
+            elif i == ";": #mouseX
                 for r in range(4):
                     try:
                         if data[count+r].isdigit():
                             mouseX += data[count+r]
                     except:
-                        mouseX = ""
                         break
             elif i == ":": #mouseY
                 for q in range(4):
                     try:
                         if data[count+q].isdigit():
-                            mouseX += data[count+q]
+                            mouseY += data[count+q]
                     except:
-                        mouseY = ""
                         break
             elif i == ".":
                 for s in range(4):
@@ -163,11 +209,11 @@ class PixelProcessThread(Thread):
                     radius = 0
                     brushType = ""
 
-                    if mouseX != "" and mouseY != "":
-                        self.clientWindow[self.clientWindow.username].set_pos((mouseX,mouseY))
                     
             count += 1
         self.image.image = self.image.pixels.make_surface()
+        if mouseX != "" and mouseY != "":
+            self.clientWindow.clients_icons[clientName].set_pos((int(mouseX),int(mouseY)))
         
     def run(self):
         while self.running == True:
@@ -177,6 +223,8 @@ class PixelProcessThread(Thread):
                     self.process_pixels(data[11:])
                 elif "_BRUSHDATA_" in data:
                     self.process_brushes(data[11:])
+                elif "_MOUSEDATA_" in data:
+                    self.process_mouse(data[11:])
 
 class ColorWheel(object):
     def __init__(self,pos,r):
@@ -332,7 +380,8 @@ class PaintBrush(object):
         screen.blit(self.image,self.image_rect)
     
 class PaintImage(object):
-    def __init__(self,pos,w,h,clientWindow):
+    def __init__(self,program,pos,w,h):
+        self.program = program
         self.image = pygame.Surface((w,h))
         self.width = w
         self.height = h
@@ -350,7 +399,7 @@ class PaintImage(object):
 
         self.timer = 0.0
 
-        self.process_thread = PixelProcessThread(self,clientWindow)
+        self.process_thread = PixelProcessThread(self,program.window_clients)
         self.process_thread.start()
         
     def tostring(self):
@@ -389,18 +438,21 @@ class PaintImage(object):
     def rgb_to_hex(self,rgb):
         return '%02x%02x%02x' % rgb
     def convert_pixel_buffer_to_string(self,mousePos):
-        string = ";" + str(mousePos[0]) + ":" + str(mousePos[1])
+        string = "$" + self.program.client.username + ";" + str(mousePos[0]) + ":" + str(mousePos[1])
         if len(self.pixel_buffer) == 0:
             return string
         for key,value in self.pixel_buffer.iteritems():
             string += "." + str(key[0]) + "," + str(key[1]) + "#" + value
         return string
     def convert_brush_buffer_to_string(self,mousePos):
-        string = ";" + str(mousePos[0]) + ":" + str(mousePos[1])
+        string = "$" + self.program.client.username + ";" + str(mousePos[0]) + ":" + str(mousePos[1])
         if len(self.brush_buffer) == 0:
             return string
         for key,value in self.brush_buffer.iteritems():
             string += "." + str(key[0]) + "," + str(key[1]) + "#" + value
+        return string
+    def convert_mouse_pos(self,mousePos):
+        string = "$" + self.program.client.username + ";" + str(mousePos[0]) + ":" + str(mousePos[1])
         return string
     
     def is_mouse_over(self,mousePos):
@@ -409,8 +461,17 @@ class PaintImage(object):
         return True
         
     def update(self,events,elapsed,mousePos,currentColor,client,canEdit=True,currentBrush=None):
+        self.timer += float(elapsed/1000.0)
+
+        if not self.is_click(events):
+            if self.timer > 0.5:
+                string1 = self.convert_mouse_pos(mousePos)
+                client.send_message("_MOUSEDATA_" + string1)
+                self.timer = 0
+        
         if not canEdit:
             return
+        
         x = mousePos[0] - self.pos[0]
         y = mousePos[1] - self.pos[1]
         if self.is_mouse_over(mousePos):
@@ -423,13 +484,11 @@ class PaintImage(object):
                     currentBrush.paint_brushes(startX,startY,self,currentColor)
 
                 self.image = self.pixels.make_surface()
-                
-        self.timer += float(elapsed/1000.0)
-
+ 
         if not self.pixel_buffer and not self.brush_buffer:
             return
 
-        if self.timer > 0.2:
+        if self.timer > 0.5:
             #string = self.convert_pixel_buffer_to_string(mousePos)
             string = self.convert_brush_buffer_to_string(mousePos)
             

@@ -185,8 +185,9 @@ class Button(pygame.sprite.Sprite):
 
  
 class WindowRectangle(pygame.sprite.Sprite):
-    def __init__(self,programSize,pos,w=200,h=600,borderColor=(0,0,0),fillColor=(240,240,240)):
+    def __init__(self,program,programSize,pos,w=200,h=600,borderColor=(0,0,0),fillColor=(240,240,240)):
         pygame.sprite.Sprite.__init__(self)
+        self.program = program
         self.pos = pos
         self.width = w
         self.height = h
@@ -214,8 +215,8 @@ class WindowRectangle(pygame.sprite.Sprite):
 # and functionality on handeling text overflow, like adding a scrolling bar on the side of the window.
 #
 class WindowTextlist(WindowRectangle):
-    def __init__(self,programSize,pos,w=200,h=600,borderColor=(0,0,0),fillColor=(240,240,240)):
-        WindowRectangle.__init__(self,programSize,pos,w,h,borderColor,fillColor)
+    def __init__(self,program,programSize,pos,w=200,h=600,borderColor=(0,0,0),fillColor=(240,240,240)):
+        WindowRectangle.__init__(self,program,programSize,pos,w,h,borderColor,fillColor)
 
 
         self.fullListOfInfo = []
@@ -232,8 +233,8 @@ class WindowTextlist(WindowRectangle):
         WindowRectangle.draw(self,screen)
 
 class WindowClients(WindowTextlist):
-    def __init__(self,programSize,pos,w=100,h=600,borderColor=(0,0,0),fillColor=(255,255,255)):
-        WindowTextlist.__init__(self,programSize,pos,w,h,borderColor,fillColor)
+    def __init__(self,program,programSize,pos,w=100,h=600,borderColor=(0,0,0),fillColor=(255,255,255)):
+        WindowTextlist.__init__(self,program,programSize,pos,w,h,borderColor,fillColor)
         self.clients = []
         self.clients_icons = {}
         
@@ -254,7 +255,7 @@ class WindowClients(WindowTextlist):
             self.clients_icons[client] = icon
 
     def remove_client(self,client):
-        if not client in self.clients:
+        if client in self.clients:
             self.clients.remove(client)
             self.clients_icons = removekey(self.clients_icons,client)
 
@@ -290,8 +291,8 @@ class WindowClients(WindowTextlist):
 #
 #
 class WindowChat(WindowTextlist):
-    def __init__(self,programSize,pos,font,client,w=600,h=300,borderColor=(0,0,0),fillColor=(240,240,240)):
-        WindowTextlist.__init__(self,programSize,pos,w,h,borderColor,fillColor)
+    def __init__(self,program,programSize,pos,font,client,w=600,h=300,borderColor=(0,0,0),fillColor=(240,240,240)):
+        WindowTextlist.__init__(self,program,programSize,pos,w,h,borderColor,fillColor)
         self.client = client
         self.counter = 0
         self.chat_rect_border = pygame.Rect(0,0,self.width-8,self.height - font.size("X")[1]-26)
@@ -368,8 +369,8 @@ class WindowChat(WindowTextlist):
         self.chat_field.draw(screen)
             
 class WindowPrompt(WindowRectangle):
-    def __init__(self,programSize,pos,font,w=100,h=600,borderColor=(0,0,0),fillColor=(240,240,240)):
-        WindowRectangle.__init__(self,programSize,pos,w,h,borderColor,fillColor)
+    def __init__(self,program,programSize,pos,font,w=100,h=600,borderColor=(0,0,0),fillColor=(240,240,240)):
+        WindowRectangle.__init__(self,program,programSize,pos,w,h,borderColor,fillColor)
         
         self.rect_border.center = (self.pos[0],self.pos[1])
         self.rect.center = (self.pos[0],self.pos[1])
@@ -434,8 +435,8 @@ class WindowPrompt(WindowRectangle):
         self.connect_button.draw(screen)
 
 class WindowPaint(WindowRectangle):
-    def __init__(self,programSize,pos,w=100,h=600,borderColor=(0,0,0),fillColor=(240,240,240)):
-        WindowRectangle.__init__(self,programSize,pos,w,h,borderColor,fillColor)
+    def __init__(self,program,programSize,pos,w=100,h=600,borderColor=(0,0,0),fillColor=(240,240,240)):
+        WindowRectangle.__init__(self,program,programSize,pos,w,h,borderColor,fillColor)
 
         self.brushes = []
         self.currentBrush = None

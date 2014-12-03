@@ -39,7 +39,7 @@ class ServerListenThread(Thread):
         self.server = server
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.host = 'localhost'
+        self.host = GetIp()
         self.port = 6121
         self.s.bind((self.host, self.port))
         print(str(self.host) + " (IP: " + GetIp() + ")" + " Listening on port : " + str(self.port)+"\r\n")
@@ -80,7 +80,8 @@ class ProcessThread(Thread):
             #clean up any innactive threads
             for key,value in self.server.clients.items():
                 if value.running == False:
-                    print("Removing Client: " + str(key))
+                    print("Removing Client: " + key)
+                    self.server.broadcast_notsource("_DISCONNECT_|" + key,key)
                     self.server.clients = removekey(self.server.clients,key)
 
 class ClientThread(Thread):
@@ -303,6 +304,8 @@ class Server():
                 elif "_PIXELDATA_" in data:
                     self.broadcast_notsource(data,username)
                 elif "_BRUSHDATA_" in data:
+                    self.broadcast_notsource(data,username)
+                elif "_MOUSEDATA_" in data:
                     self.broadcast_notsource(data,username)
                 elif "_REQUESTIMAGE_" in data:
                     imgdata = self.program.image.tostring()

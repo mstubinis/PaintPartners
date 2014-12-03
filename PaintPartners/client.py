@@ -83,6 +83,8 @@ class ClientThreadRecieve(Thread):
                         self.client.program.image.process_thread.add(data)
                     elif "_BRUSHDATA_" in data:
                         self.client.program.image.process_thread.add(data)
+                    elif "_MOUSEDATA_" in data:
+                        self.client.program.image.process_thread.add(data)
 
                         
                     elif "_CONNECT_" in data:
@@ -127,7 +129,7 @@ class Client(object):
                 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.connection_destination = server
                 if server.lower() == "localhost" or admin == True:
-                    self.connection_destination = "localhost"
+                    self.connection_destination = GetIp()
 
                 self.username = username
                 self.server_pass = server_pass
