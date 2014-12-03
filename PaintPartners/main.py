@@ -74,8 +74,8 @@ class Program(object):
 
         self.window_prompt.resize(self.size)
         self.window_paint.resize(self.size)
-        self.window_clients.resize(self.size)
-        self.window_chat.resize(self.size)
+        self.window_clients.resize(self.size,self.font)
+        self.window_chat.resize(self.size,self.font)
         self.image.resize(self.size,(self.window_paint.pos[0] + self.window_paint.width + 4,self.window_paint.pos[1]))
         
     def draw(self):

@@ -238,7 +238,7 @@ class WindowClients(WindowTextlist):
         self.clients = []
         self.clients_icons = {}
         
-    def resize(self,size,resize=True):
+    def resize(self,size,font,resize=True):
         if not resize:
             return
         self.height = size[1] - self.pos[1] - 4
@@ -247,6 +247,21 @@ class WindowClients(WindowTextlist):
         
         self.rect = pygame.Rect(0,0,self.width-2,self.height-1)
         self.rect.topleft = (self.pos[0]+1,self.pos[1])
+
+        # TODO - Calculate number of display entries using height of the font and height
+        # of the window
+        # this can be done by getting the height of an arbitrary font character like
+        # font.size("X")[1], and dividing the height of the window by that
+        # (self.height / (font.size("X")[1] + 6)). The + 6 is simply used to give the font more y direction space.
+        # Then floor this number. This should determine the max
+        # amount of entries that can be used before overflow occurs.
+
+        # something along the lines of this:
+        #
+        #
+        # maxAmountOfEntries = (self.height / (font.size("X")[1] + 6))
+        # for i in range(maxAmountOfEntries):
+        #     render the text, from the LAST element in the list first, iterating towards the front of the list    
 
     def add_client(self,client,font):
         if not client in self.clients:
@@ -306,7 +321,7 @@ class WindowChat(WindowTextlist):
                                                client.username, #username
                                                font)#font
 
-    def resize(self,size,resize=True):
+    def resize(self,size,font, resize=True):
         if not resize:
             return
         self.height = size[1] - self.pos[1] - 4
@@ -325,6 +340,21 @@ class WindowChat(WindowTextlist):
             self.chat_rect_border.topleft = (self.pos[0]+4,self.pos[1]+3)
             self.chat_rect = pygame.Rect(0,0,self.width-10,self.height - self.chat_field.h*1.5-2)
             self.chat_rect.topleft = (self.pos[0]+5,self.pos[1]+4)
+
+        # TODO - Calculate number of display entries using height of the font and height
+        # of the window
+        # this can be done by getting the height of an arbitrary font character like
+        # font.size("X")[1], and dividing the height of the window by that
+        # (self.height / (font.size("X")[1] + 6)). The + 6 is simply used to give the font more y direction space.
+        # Then floor this number. This should determine the max
+        # amount of entries that can be used before overflow occurs.
+
+        # something along the lines of this:
+        #
+        #
+        # maxAmountOfEntries = (self.height / (font.size("X")[1] + 6))
+        # for i in range(maxAmountOfEntries):
+        #     render the text, from the LAST element in the list first, iterating towards the front of the list
 
     def display_message(self,data):
         self.fullListOfInfo.append(data[13:])
