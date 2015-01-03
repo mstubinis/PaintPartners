@@ -236,11 +236,10 @@ class Server():
         source_socket.send(message)
         
     def reply_to_client_username(self,message,username):
-        for key,value in self.clients.iteritems():
-            if key == username:
-                self.clients[username].conn.send(message)
-                return
-        print("Could not find username: " + username)
+        if not username in self.clients.keys():
+            print("Could not find username: " + username)
+            return
+        self.clients[username].conn.send(message)
 
     def process_init(self,data,client_thread):
         if data:
