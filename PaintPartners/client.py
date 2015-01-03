@@ -21,12 +21,6 @@ def parse_message(message,typeMessage=""):
         count += 1
     return messageList
 
-def GetIp():
-    try:
-        return json.load(urlopen('http://httpbin.org/ip'))['origin']
-    except:
-        print("Could not obtain IP Address")
-
 class ClientThreadSend(Thread):
     def __init__(self,client,socket):
         super(ClientThreadSend, self).__init__()
@@ -103,7 +97,6 @@ class ClientThreadRecieve(Thread):
         
 class Client(object):
     def __init__(self,program):
-        self.ip = GetIp()
         self.client_send = None
         self.client_recv = None
         self.connected = False
@@ -129,7 +122,7 @@ class Client(object):
                 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.connection_destination = server
                 if server.lower() == "localhost" or admin == True:
-                    self.connection_destination = GetIp()
+                    self.connection_destination = "127.0.0.1"
 
                 self.username = username
                 self.server_pass = server_pass

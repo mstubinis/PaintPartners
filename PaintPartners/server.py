@@ -2,13 +2,7 @@ import socket,select,Queue,json,random,sys,ConfigParser,getpass,imp
 from threading import Thread
 from time import sleep
 from urllib2 import urlopen
-
-def GetIp():
-    try:
-        return json.load(urlopen('http://httpbin.org/ip'))['origin']
-    except:
-        print("Could not obtain IP Address")
-        
+     
 def parse_message(message,typeMessage=""):
     messageList = []
     count = 0
@@ -39,10 +33,10 @@ class ServerListenThread(Thread):
         self.server = server
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.host = GetIp()
+        self.host = "127.0.0.1"
         self.port = 6121
         self.s.bind((self.host, self.port))
-        print(str(self.host) + " (IP: " + GetIp() + ")" + " Listening on port : " + str(self.port)+"\r\n")
+        print(str(self.host) + " Listening on port : " + str(self.port)+"\r\n")
         self.s.listen(10)
         
     def stop(self):
