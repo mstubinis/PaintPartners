@@ -288,7 +288,7 @@ class Server():
                     self.broadcast_notsource(block,username)
                 elif "_REQUESTIMAGE_" in block:
                     imgdata = self.program.image.tostring()
-                    self.clients[username].conn.send("_FULLDATA_" + imgdata)
+                    self.reply_to_client_username("_FULLDATA_" + imgdata,username)
                 elif "_DISCONNECT_" in block:
                     li = parse_message(block,"_DISCONNECT_")
                     self.broadcast(block)

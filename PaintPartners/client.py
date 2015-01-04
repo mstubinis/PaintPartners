@@ -46,40 +46,39 @@ class ClientThreadRecieve(Thread):
             try:
                 data = self.conn.recv(9999999)
                 if data:
-                    if not "_FULLDATA_" in data:
-                        blocks = parse_data(data)
-                        for block in blocks:
-                            if "_CONNECTVALID_" in block:
-                                if data == "_CONNECTVALIDNOEDIT_":
-                                    self.client.approve_connection(False)
-                                else:
-                                    self.client.approve_connection()
-                            elif "_KICK_" in block:
-                                self.client.disconnect_from_server()
-                            elif "_LOCK_" in block:
-                                self.client.program.state = "STATE_MAIN_NOEDIT"
-                            elif "_UNLOCK_" in block:
-                                self.client.program.state = "STATE_MAIN"
-                            elif "_CHATMESSAGE_" in block:
-                                self.client.program.window_chat.display_message(block)
-                            elif "_PIXELDATA_" in block:
-                                self.client.program.image.process_thread.add(block)
-                            elif "_BRUSHDATA_" in block:
-                                self.client.program.image.process_thread.add(block)
-                            elif "_MOUSEDATA_" in block:
-                                self.client.program.image.process_thread.add(block)
+                    blocks = parse_data(data)
+                    for block in blocks:
+                        if "_CONNECTVALID_" in block:
+                            if data == "_CONNECTVALIDNOEDIT_":
+                                self.client.approve_connection(False)
+                            else:
+                                self.client.approve_connection()
+                        elif "_FULLDATA_" in block:
+                            self.client.program.image.fromstring(block[10:])
+                        elif "_KICK_" in block:
+                            self.client.disconnect_from_server()
+                        elif "_LOCK_" in block:
+                            self.client.program.state = "STATE_MAIN_NOEDIT"
+                        elif "_UNLOCK_" in block:
+                            self.client.program.state = "STATE_MAIN"
+                        elif "_CHATMESSAGE_" in block:
+                            self.client.program.window_chat.display_message(block)
+                        elif "_PIXELDATA_" in block:
+                            self.client.program.image.process_thread.add(block)
+                        elif "_BRUSHDATA_" in block:
+                            self.client.program.image.process_thread.add(block)
+                        elif "_MOUSEDATA_" in block:
+                            self.client.program.image.process_thread.add(block)
                     
-                            elif "_CONNECT_" in block:
-                                li = parse_message(block,"_CONNECT_")
-                                li.remove(li[0])
-                                for i in li:
-                                    self.client.program.window_clients.add_client(i,self.client.program.font)
-                                self.client.program.window_clients.sort_clients()
+                        elif "_CONNECT_" in block:
+                            li = parse_message(block,"_CONNECT_")
+                            li.remove(li[0])
+                            for i in li:
+                                self.client.program.window_clients.add_client(i,self.client.program.font)
+                            self.client.program.window_clients.sort_clients()
                                     
-                            elif "_DISCONNECT_" in block:
-                                self.client.program.window_clients.remove_client(block[13:])
-                    else:
-                        self.client.program.image.fromstring(data[10:])
+                        elif "_DISCONNECT_" in block:
+                            self.client.program.window_clients.remove_client(block[13:])
                         
             except socket.error as msg:
                 print("Socket error!: " + str(msg))
