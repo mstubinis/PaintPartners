@@ -1,25 +1,13 @@
-import socket,select,Queue,json,random,sys,ConfigParser,getpass,imp
+import socket,select,Queue,json,random,sys,ConfigParser,getpass,imp,re
 from threading import Thread
 from time import sleep
 from urllib2 import urlopen
      
-def parse_message(message,typeMessage=""):
-    messageList = []
-    count = 0
-    part = ''
-    for char in message:
-        if count != 0:
-            if count > len(typeMessage)-1:
-                if char == "_" or char == "|":
-                    messageList.append(part)
-                    part = ''
-                else:
-                    part += char
-                    if count == len(message) - 1:
-                        messageList.append(part)
-                        part = ''
-        count += 1
-    return messageList
+def parse_message(data,typeMessage=""):
+    return filter(None,re.split('[_\|]', data))
+
+def parse_data(data):
+    return filter(None,re.split('[{}]', data)) 
 
 def removekey(dictionary, key):
     r = dict(dictionary)
@@ -222,90 +210,88 @@ class Server():
           
     def broadcast(self,message):
         for key,value in self.clients.iteritems():
-            value.conn.send(message)
+            value.conn.send("{"+message+"}")
     def broadcast_noadmin(self,message):
         for key,value in self.clients.iteritems():
             if key != self.admin:
-                value.conn.send(message)
+                value.conn.send("{"+message+"}")
     def broadcast_notsource(self,message,username):
         for key,value in self.clients.iteritems():
             if key != username:
-                value.conn.send(message)
+                value.conn.send("{"+message+"}")
                 
     def reply_to_client(self,message,source_socket):
-        source_socket.send(message)
+        source_socket.send("{"+message+"}")
         
     def reply_to_client_username(self,message,username):
         if not username in self.clients.keys():
             print("Could not find username: " + username)
             return
-        self.clients[username].conn.send(message)
+        self.clients[username].conn.send("{"+message+"}")
 
     def process_init(self,data,client_thread):
         if data:
             print(data)
-            if "_CONNECT_" in data:
-                messages = parse_message(data,"_CONNECT_")
+            blocks = parse_data(data)
+            for block in blocks:
+                if "_CONNECT_" in block:
+                    messages = parse_message(block,"_CONNECT_")
+                    for key,value in self.clients.iteritems():
+                        if key == messages[1]:
+                            self.reply_to_client("_INVALIDUSERNAME_",client_thread.conn)
+                            return
+                    config = ConfigParser.RawConfigParser()
+                    config.readfp(open('server.cfg'))
+                    serverPass = config.get('ServerInfo', 'serverpass')
 
-                for key,value in self.clients.iteritems():
-                    if key == messages[1]:
-                        self.reply_to_client("_INVALIDUSERNAME_",client_thread.conn)
-                        #client_thread.stop()
+                    if messages[2] != serverPass:
+                        self.reply_to_client("_INVALIDPASSWORD_",client_thread.conn)
                         return
-                config = ConfigParser.RawConfigParser()
-                config.readfp(open('server.cfg'))
-                serverPass = config.get('ServerInfo', 'serverpass')
 
-                if messages[2] != serverPass:
-                    self.reply_to_client("_INVALIDPASSWORD_",client_thread.conn)
-                    #client_thread.stop()
-                    return
+                    address_copy = client_thread.address
+                    client_thread.username = messages[1]
+                    self.clients[messages[1]] = client_thread
+                    self.clients = removekey(self.clients,address_copy)
+                    self.print_clients()
+     
+                    canEdit = config.get('ServerInfo', 'allowedits')
+                    if canEdit == "1":
+                        self.reply_to_client("_CONNECTVALID_",client_thread.conn)
+                    else:
+                        self.reply_to_client("_CONNECTVALIDNOEDIT_",client_thread.conn)
 
-                address_copy = client_thread.address
-                client_thread.username = messages[1]
-                self.clients[messages[1]] = client_thread
-                self.clients = removekey(self.clients,address_copy)
-                self.print_clients()
- 
-                canEdit = config.get('ServerInfo', 'allowedits')
-                if canEdit == "1":
-                    self.reply_to_client("_CONNECTVALID_",client_thread.conn)
-                else:
-                    self.reply_to_client("_CONNECTVALIDNOEDIT_",client_thread.conn)
-
-                msg = ""
-                for key,value in self.clients.items():
-                    msg += key + "|"
-                msg = msg[:-1]
-                self.broadcast("_CONNECT_" + msg)
+                    msg = ""
+                    for key,value in self.clients.items():
+                        msg += key + "|"
+                    msg = msg[:-1]
+                    self.broadcast("_CONNECT_" + msg)
 
     #This method prcesses string data          
     def process(self,data,username):
         if data:
+            blocks = parse_data(data)
+            
             client_thread = None
             #get client thread to work with
             for key,value in self.clients.iteritems():
                 if key == username:
                     client_thread = value
                     break
-  
-            if data[0] == "_":
-                if "_CHATMESSAGE_" in data:
-                    #data[14:] - this should be the string data after the _CHATMESSAGE tag
-                    self.broadcast(data)
-
-                elif "_PIXELDATA_" in data:
-                    self.broadcast_notsource(data,username)
-                elif "_BRUSHDATA_" in data:
-                    self.broadcast_notsource(data,username)
-                elif "_MOUSEDATA_" in data:
-                    self.broadcast_notsource(data,username)
-                elif "_REQUESTIMAGE_" in data:
+            for block in blocks:
+                if "_CHATMESSAGE_" in block:
+                    self.broadcast(block)
+                elif "_PIXELDATA_" in block:
+                    self.broadcast_notsource(block,username)
+                elif "_BRUSHDATA_" in block:
+                    self.broadcast_notsource(block,username)
+                elif "_MOUSEDATA_" in block:
+                    self.broadcast_notsource(block,username)
+                elif "_REQUESTIMAGE_" in block:
                     imgdata = self.program.image.tostring()
-                    self.reply_to_client_username("_FULLDATA_" + imgdata,username)
-                elif "_DISCONNECT_" in data:
-                    li = parse_message(data,"_DISCONNECT_")
-                    self.broadcast(data)
+                    self.clients[username].conn.send("_FULLDATA_" + imgdata)
+                elif "_DISCONNECT_" in block:
+                    li = parse_message(block,"_DISCONNECT_")
+                    self.broadcast(block)
                     print("Removing Client: " + li[1])
                     self.clients = removekey(self.clients,li[1])
                     

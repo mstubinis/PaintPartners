@@ -1,25 +1,13 @@
-import sys,socket,thread,select,pygame,json,Queue,ConfigParser
+import sys,socket,thread,select,pygame,json,Queue,ConfigParser,re
 from urllib2 import urlopen
 from time import sleep
 from threading import Thread
 
-def parse_message(message,typeMessage=""):
-    messageList = []
-    count = 0
-    part = ''
-    for char in message:
-        if count != 0:
-            if count > len(typeMessage)-1:
-                if char == "_" or char == "|":
-                    messageList.append(part)
-                    part = ''
-                else:
-                    part += char
-                    if count == len(message) - 1:
-                        messageList.append(part)
-                        part = ''
-        count += 1
-    return messageList
+def parse_message(data,typeMessage=""):
+    return filter(None,re.split('[_\|]', data))
+
+def parse_data(data):
+    return filter(None,re.split('[{}]', data))
 
 class ClientThreadSend(Thread):
     def __init__(self,client,socket):
@@ -58,37 +46,40 @@ class ClientThreadRecieve(Thread):
             try:
                 data = self.conn.recv(9999999)
                 if data:
-                    if "_CONNECTVALID_" in data:
-                        if data == "_CONNECTVALIDNOEDIT_":
-                            self.client.approve_connection(False)
-                        else:
-                            self.client.approve_connection()
-                    elif "_FULLDATA_" in data:
+                    if not "_FULLDATA_" in data:
+                        blocks = parse_data(data)
+                        for block in blocks:
+                            if "_CONNECTVALID_" in block:
+                                if data == "_CONNECTVALIDNOEDIT_":
+                                    self.client.approve_connection(False)
+                                else:
+                                    self.client.approve_connection()
+                            elif "_KICK_" in block:
+                                self.client.disconnect_from_server()
+                            elif "_LOCK_" in block:
+                                self.client.program.state = "STATE_MAIN_NOEDIT"
+                            elif "_UNLOCK_" in block:
+                                self.client.program.state = "STATE_MAIN"
+                            elif "_CHATMESSAGE_" in block:
+                                self.client.program.window_chat.display_message(block)
+                            elif "_PIXELDATA_" in block:
+                                self.client.program.image.process_thread.add(block)
+                            elif "_BRUSHDATA_" in block:
+                                self.client.program.image.process_thread.add(block)
+                            elif "_MOUSEDATA_" in block:
+                                self.client.program.image.process_thread.add(block)
+                    
+                            elif "_CONNECT_" in block:
+                                li = parse_message(block,"_CONNECT_")
+                                li.remove(li[0])
+                                for i in li:
+                                    self.client.program.window_clients.add_client(i,self.client.program.font)
+                                self.client.program.window_clients.sort_clients()
+                                    
+                            elif "_DISCONNECT_" in block:
+                                self.client.program.window_clients.remove_client(block[13:])
+                    else:
                         self.client.program.image.fromstring(data[10:])
-                    elif "_KICK_" in data:
-                        self.client.disconnect_from_server()
-                    elif "_LOCK_" in data:
-                        self.client.program.state = "STATE_MAIN_NOEDIT"
-                    elif "_UNLOCK_" in data:
-                        self.client.program.state = "STATE_MAIN"
-                    elif "_CHATMESSAGE_" in data:
-                        self.client.program.window_chat.display_message(data)
-                    elif "_PIXELDATA_" in data:
-                        self.client.program.image.process_thread.add(data)
-                    elif "_BRUSHDATA_" in data:
-                        self.client.program.image.process_thread.add(data)
-                    elif "_MOUSEDATA_" in data:
-                        self.client.program.image.process_thread.add(data)
-
-                        
-                    elif "_CONNECT_" in data:
-                        li = parse_message(data,"_CONNECT_")
-                        for i in li:
-                            self.client.program.window_clients.add_client(i,self.client.program.font)
-                        self.client.program.window_clients.sort_clients()
-                            
-                    elif "_DISCONNECT_" in data:
-                        self.client.program.window_clients.remove_client(data[13:])
                         
             except socket.error as msg:
                 print("Socket error!: " + str(msg))
@@ -149,7 +140,7 @@ class Client(object):
 
 
                 
-                sleep(0.5)
+                sleep(1.5)
 
                 self.send_message("_REQUESTIMAGE_")
 
@@ -179,4 +170,4 @@ class Client(object):
     def send_message(self,message):
         if self.client_send is not None:
             if self.client_send.running == True:
-                self.client_send.add(message)
+                self.client_send.add("{" + message + "}")

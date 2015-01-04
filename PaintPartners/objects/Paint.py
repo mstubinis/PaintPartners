@@ -1,6 +1,10 @@
 import pygame,copy,math,colorsys,Queue,Window
+import re
 from pygame.locals import *
 from threading import Thread
+
+def parse_data(data):
+    return filter(None,re.split('[{}]', data))
 
 class PixelProcessThread(Thread):
     def __init__(self,image,clientWindow):
@@ -19,6 +23,7 @@ class PixelProcessThread(Thread):
         mouseX = ""
         mouseY = ""
         count = 0
+
         for i in data:
             if i == "$": #clientName
                 for a in range(25):
@@ -219,6 +224,7 @@ class PixelProcessThread(Thread):
         while self.running == True:
             if not self.q.empty():
                 data = self.q.get(block=True)
+
                 if "_PIXELDATA_" in data:
                     self.process_pixels(data[11:])
                 elif "_BRUSHDATA_" in data:
@@ -466,7 +472,7 @@ class PaintImage(object):
         if not self.is_click(events):
             if self.timer > 0.5:
                 string1 = self.convert_mouse_pos(mousePos)
-                client.send_message("_MOUSEDATA_" + string1)
+                client.send_message("{" + "_MOUSEDATA_" + string1 + "}")
                 self.timer = 0
         
         if not canEdit:
@@ -492,8 +498,8 @@ class PaintImage(object):
             #string = self.convert_pixel_buffer_to_string(mousePos)
             string = self.convert_brush_buffer_to_string(mousePos)
             
-            #client.send_message("_PIXELDATA_" + string)
-            client.send_message("_BRUSHDATA_" + string)
+            #client.send_message("{" + "_PIXELDATA_" + string + "}")
+            client.send_message("{" + "_BRUSHDATA_" + string + "}")
             
             self.pixel_buffer.clear()
             self.brush_buffer.clear()
